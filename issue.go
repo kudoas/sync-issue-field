@@ -24,7 +24,7 @@ func NewIssueID() *IssueID {
 }
 
 func (i *IssueID) Query(client *githubv4.Client, ctx context.Context, variables map[string]interface{}) error {
-	return client.Query(context.Background(), &i, variables)
+	return client.Query(ctx, &i, variables)
 }
 
 func (i *IssueID) GetIssueID() githubv4.ID {
@@ -76,7 +76,7 @@ func NewParentIssue() *ParentIssue {
 }
 
 func (p *ParentIssue) Query(client *githubv4.Client, ctx context.Context, variables map[string]interface{}) error {
-	return client.Query(context.Background(), &p, variables)
+	return client.Query(ctx, &p, variables)
 }
 
 func (p *ParentIssue) GetAssigneeIDs() *[]githubv4.ID {
