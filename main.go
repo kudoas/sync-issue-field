@@ -34,12 +34,13 @@ func main() {
 			} `graphql:"issue(number: $issueNumber)"`
 		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 	}
-	err := client.Query(context.Background(), &getParentIDQuery, map[string]interface{}{
+
+	variable := map[string]interface{}{
 		"repositoryOwner": githubv4.String(owner),
 		"repositoryName":  githubv4.String(name),
 		"issueNumber":     githubv4.Int(issue),
-	})
-	if err != nil {
+	}
+	if err := client.Query(context.Background(), &getParentIDQuery, variable); err != nil {
 		panic(err)
 	}
 
@@ -78,10 +79,9 @@ func main() {
 			} `graphql:"... on Issue"`
 		} `graphql:"node(id: $issueID)"`
 	}
-	err = client.Query(context.Background(), &getParentIssueQuery, map[string]interface{}{
+	if err := client.Query(context.Background(), &getParentIssueQuery, map[string]interface{}{
 		"issueID": githubv4.ID(getParentIDQuery.Repository.Issue.TrackedInIssues.Nodes[0].ID),
-	})
-	if err != nil {
+	}); err != nil {
 		panic(err)
 	}
 
@@ -99,7 +99,7 @@ func main() {
 		LabelIDs:    extractIDs(getParentIssueQuery.Node.Issue.Labels.Nodes),
 		MilestoneID: &getParentIssueQuery.Node.Issue.Milestone.ID,
 	}
-	if err = client.Mutate(context.Background(), &mutation, input, nil); err != nil {
+	if err := client.Mutate(context.Background(), &mutation, input, nil); err != nil {
 		panic(err)
 	}
 }
