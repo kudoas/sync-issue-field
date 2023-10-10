@@ -59,6 +59,22 @@ func main() {
 				Milestone struct {
 					ID githubv4.ID
 				} `graphql:"milestone"`
+				ProjectItems struct {
+					Nodes []struct {
+						FieldValues struct {
+							Nodes []struct {
+								OnProjectV2ItemFieldSingleSelectValue struct {
+									ID       githubv4.ID
+									OptionID githubv4.ID
+								} `graphql:"... on ProjectV2ItemFieldSingleSelectValue"`
+								OnProjectV2ItemFieldDateValue struct {
+									ID   githubv4.ID
+									Date githubv4.String
+								} `graphql:"... on ProjectV2ItemFieldDateValue"`
+							}
+						} `graphql:"fieldValues(last: 10)"`
+					}
+				} `graphql:"projectItems(first: 5)"`
 			} `graphql:"... on Issue"`
 		} `graphql:"node(id: $issueID)"`
 	}
