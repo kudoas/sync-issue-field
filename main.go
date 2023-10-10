@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/kudoas/gis/mutate"
+	"github.com/kudoas/gis/query"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -24,7 +26,7 @@ func main() {
 	httpClient := oauth2.NewClient(context.Background(), src)
 	client := githubv4.NewClient(httpClient)
 
-	i := NewIssueID()
+	i := query.NewIssueID()
 	variable := map[string]interface{}{
 		"repositoryOwner": githubv4.String(owner),
 		"repositoryName":  githubv4.String(name),
@@ -34,14 +36,14 @@ func main() {
 		log.Fatalf("failed to get issue id: %v", err)
 	}
 
-	p := NewParentIssue()
+	p := query.NewParentIssue()
 	if err := p.Query(client, context.Background(), map[string]interface{}{
 		"issueID": githubv4.ID(i.GetParentIssueID()),
 	}); err != nil {
 		log.Fatalf("failed to get parent issue: %v", err)
 	}
 
-	m := NewMutationIssue()
+	m := mutate.NewMutationIssue()
 	input := githubv4.UpdateIssueInput{
 		ID:          i.GetIssueID(),
 		AssigneeIDs: p.GetAssigneeIDs(),
