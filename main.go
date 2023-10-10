@@ -48,19 +48,16 @@ func main() {
 			Issue struct {
 				Assignees struct {
 					Nodes []struct {
-						ID   githubv4.ID
-						Name githubv4.String
+						ID githubv4.ID
 					}
 				} `graphql:"assignees(first: 5)"`
 				Labels struct {
 					Nodes []struct {
-						ID   githubv4.ID
-						Name githubv4.String
+						ID githubv4.ID
 					}
-				} `graphql:"labels(first: 10)"`
+				} `graphql:"labels(first: 20)"`
 				Milestone struct {
-					ID    githubv4.ID
-					Title githubv4.String
+					ID githubv4.ID
 				} `graphql:"milestone"`
 			} `graphql:"... on Issue"`
 		} `graphql:"node(id: $issueID)"`
@@ -79,13 +76,24 @@ func main() {
 			}
 		} `graphql:"updateIssue(input: $input)"`
 	}
+
 	input := githubv4.UpdateIssueInput{
 		ID:          getParentIDQuery.Repository.Issue.ID,
-		AssigneeIDs: &[]githubv4.ID{getParentIssueQuery.Node.Issue.Assignees.Nodes[0].ID},
-		LabelIDs:    &[]githubv4.ID{getParentIssueQuery.Node.Issue.Labels.Nodes[0].ID},
+		AssigneeIDs: extractIDs(getParentIssueQuery.Node.Issue.Assignees.Nodes),
+		LabelIDs:    extractIDs(getParentIssueQuery.Node.Issue.Labels.Nodes),
 		MilestoneID: &getParentIssueQuery.Node.Issue.Milestone.ID,
 	}
 	if err = client.Mutate(context.Background(), &mutation, input, nil); err != nil {
 		panic(err)
 	}
+}
+
+func extractIDs(nodes []struct {
+	ID githubv4.ID
+}) *[]githubv4.ID {
+	ids := make([]githubv4.ID, len(nodes))
+	for i := range nodes {
+		ids[i] = nodes[i].ID
+	}
+	return &ids
 }
