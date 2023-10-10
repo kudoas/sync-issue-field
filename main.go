@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"strconv"
 
@@ -22,26 +23,15 @@ func main() {
 	)
 	httpClient := oauth2.NewClient(context.Background(), src)
 	client := githubv4.NewClient(httpClient)
-	var getParentIDQuery struct {
-		Repository struct {
-			Issue struct {
-				ID              githubv4.ID
-				TrackedInIssues struct {
-					Nodes []struct {
-						ID githubv4.ID
-					}
-				} `graphql:"trackedInIssues(first: 5)"`
-			} `graphql:"issue(number: $issueNumber)"`
-		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
-	}
 
+	i := NewIssueID()
 	variable := map[string]interface{}{
 		"repositoryOwner": githubv4.String(owner),
 		"repositoryName":  githubv4.String(name),
 		"issueNumber":     githubv4.Int(issue),
 	}
-	if err := client.Query(context.Background(), &getParentIDQuery, variable); err != nil {
-		panic(err)
+	if err := i.Query(client, context.Background(), variable); err != nil {
+		log.Fatalf("failed to get issue id: %v", err)
 	}
 
 	var getParentIssueQuery struct {
@@ -80,9 +70,9 @@ func main() {
 		} `graphql:"node(id: $issueID)"`
 	}
 	if err := client.Query(context.Background(), &getParentIssueQuery, map[string]interface{}{
-		"issueID": githubv4.ID(getParentIDQuery.Repository.Issue.TrackedInIssues.Nodes[0].ID),
+		"issueID": githubv4.ID(i.GetParentIssueID()),
 	}); err != nil {
-		panic(err)
+		log.Fatalf("failed to get parent issue: %v", err)
 	}
 
 	var mutation struct {
@@ -94,13 +84,13 @@ func main() {
 	}
 
 	input := githubv4.UpdateIssueInput{
-		ID:          getParentIDQuery.Repository.Issue.ID,
+		ID:          i.GetIssueID(),
 		AssigneeIDs: extractIDs(getParentIssueQuery.Node.Issue.Assignees.Nodes),
 		LabelIDs:    extractIDs(getParentIssueQuery.Node.Issue.Labels.Nodes),
 		MilestoneID: &getParentIssueQuery.Node.Issue.Milestone.ID,
 	}
 	if err := client.Mutate(context.Background(), &mutation, input, nil); err != nil {
-		panic(err)
+		log.Fatalf("failed to update issue: %v", err)
 	}
 }
 
