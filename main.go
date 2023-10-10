@@ -41,21 +41,14 @@ func main() {
 		log.Fatalf("failed to get parent issue: %v", err)
 	}
 
-	var mutation struct {
-		UpdateIssue struct {
-			Issue struct {
-				ID githubv4.ID
-			}
-		} `graphql:"updateIssue(input: $input)"`
-	}
-
+	m := NewMutationIssue()
 	input := githubv4.UpdateIssueInput{
 		ID:          i.GetIssueID(),
 		AssigneeIDs: p.GetAssigneeIDs(),
 		LabelIDs:    p.GetLabelIDs(),
 		MilestoneID: p.GetMilestoneID(),
 	}
-	if err := client.Mutate(context.Background(), &mutation, input, nil); err != nil {
+	if err := m.Mutate(client, context.Background(), input); err != nil {
 		log.Fatalf("failed to update issue: %v", err)
 	}
 }
