@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/kudoas/gis/mutate"
 	"github.com/kudoas/gis/query"
@@ -13,10 +14,10 @@ import (
 )
 
 var (
-	token    = os.Getenv("INPUT_GITHUB_TOKEN")
-	owner    = os.Getenv("INPUT_GITHUB_OWNER")
-	name     = os.Getenv("INPUT_GITHUB_REPO")
-	issue, _ = strconv.Atoi(os.Getenv("INPUT_GITHUB_ISSUE"))
+	token                  = os.Getenv("INPUT_GITHUB_TOKEN")
+	repository             = strings.Split(os.Getenv("INPUT_GITHUB_REPO"), "/")
+	owner, repository_name = repository[0], repository[1]
+	issue, _               = strconv.Atoi(os.Getenv("INPUT_GITHUB_ISSUE"))
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 	i := query.NewIssueID()
 	variable := map[string]interface{}{
 		"repositoryOwner": githubv4.String(owner),
-		"repositoryName":  githubv4.String(name),
+		"repositoryName":  githubv4.String(repository_name),
 		"issueNumber":     githubv4.Int(issue),
 	}
 	if err := i.Query(client, context.Background(), variable); err != nil {
