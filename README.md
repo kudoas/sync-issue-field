@@ -1,6 +1,6 @@
 # gis (GitHub Issue Syncer)
 
-Tool that automatically synchronizes child and parent Issue information
+Tool that automatically synchronizes child and parent issue information
 
 # Requirement
 
@@ -24,10 +24,10 @@ cp .env.sample .env
 Get values from GitHub and enter them in .env
 
 ```.env
-GITHUB_TOKEN=<YOUR GITHUB TOKEN>
-GITHUB_REPO=<TARGET REPOSITORY NAME>
-GITHUB_OWNER=<YOUR ACCOUNT ID>
-GITHUB_ISSUE=<TARGET CHILD ISSUE NUMBER>
+INPUT_GITHUB_TOKEN=<YOUR GITHUB TOKEN>
+INPUT_GITHUB_REPO=<TARGET REPOSITORY NAME>
+INPUT_GITHUB_OWNER=<YOUR ACCOUNT ID>
+INPUT_GITHUB_ISSUE=<TARGET CHILD ISSUE NUMBER>
 ```
 
 # Usage

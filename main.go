@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	token    = os.Getenv("GITHUB_TOKEN")
-	owner    = os.Getenv("GITHUB_OWNER")
-	name     = os.Getenv("GITHUB_REPO")
-	issue, _ = strconv.Atoi(os.Getenv("GITHUB_ISSUE"))
+	token    = os.Getenv("INPUT_GITHUB_TOKEN")
+	owner    = os.Getenv("INPUT_GITHUB_OWNER")
+	name     = os.Getenv("INPUT_GITHUB_REPO")
+	issue, _ = strconv.Atoi(os.Getenv("INPUT_GITHUB_ISSUE"))
 )
 
 func main() {
