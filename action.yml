@@ -1,0 +1,19 @@
+name: "Sync GitHub Issue"
+description: "Sync GitHub Parent Issue to Child Issue"
+author: "kudoas"
+inputs:
+  github_owner:
+    description: "GitHub Owner"
+    required: true
+  github_repo:
+    description: "GitHub Repo"
+    required: true
+  github_issue:
+    description: "GitHub Issue Number"
+    required: true
+  github_token:
+    description: "GitHub Token"
+    required: true
+runs:
+  using: "docker"
+  image: "Dockerfile"
