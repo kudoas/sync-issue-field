@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"os"
 
 	"github.com/shurcooL/githubv4"
 )
@@ -32,5 +33,8 @@ func (i *IssueID) GetIssueID() githubv4.ID {
 }
 
 func (i *IssueID) GetParentIssueID() githubv4.ID {
+	if len(i.Repository.Issue.TrackedInIssues.Nodes) == 0 {
+		os.Exit(0)
+	}
 	return i.Repository.Issue.TrackedInIssues.Nodes[0].ID
 }
