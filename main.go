@@ -43,15 +43,21 @@ func main() {
 	}); err != nil {
 		log.Fatalf("failed to get parent issue: %v", err)
 	}
-
-	m := mutate.NewMutationIssue()
+	mi := mutate.NewMutationIssue()
 	input := githubv4.UpdateIssueInput{
 		ID:          i.GetIssueID(),
 		AssigneeIDs: p.GetAssigneeIDs(),
 		LabelIDs:    p.GetLabelIDs(),
 		MilestoneID: p.GetMilestoneID(),
 	}
-	if err := m.Mutate(client, context.Background(), input); err != nil {
+	if err := mi.Mutate(client, context.Background(), input); err != nil {
 		log.Fatalf("failed to update issue: %v", err)
+	}
+	mp := mutate.NewMutationProject()
+	if err := mp.Mutate(client, githubv4.AddProjectV2ItemByIdInput{
+		ProjectID: p.GetProjectID(),
+		ContentID: i.GetIssueID(),
+	}); err != nil {
+		log.Fatalf("failed to add project item: %v", err)
 	}
 }
