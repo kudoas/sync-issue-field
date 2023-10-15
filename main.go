@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	token                  = os.Getenv("INPUT_GITHUB_TOKEN")
-	repository             = strings.Split(os.Getenv("INPUT_GITHUB_REPO"), "/")
+	token                  = os.Getenv("INPUT_TOKEN")
+	repository             = strings.Split(os.Getenv("INPUT_REPOSITORY"), "/")
 	owner, repository_name = repository[0], repository[1]
-	issue, _               = strconv.Atoi(os.Getenv("INPUT_GITHUB_ISSUE"))
+	issue, _               = strconv.Atoi(os.Getenv("INPUT_ISSUE"))
 )
 
 func main() {

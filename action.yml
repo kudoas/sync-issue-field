@@ -2,16 +2,13 @@ name: "Sync GitHub Issue"
 description: "Sync GitHub Parent Issue to Child Issue"
 author: "kudoas"
 inputs:
-  github_owner:
-    description: "GitHub Owner"
-    required: true
-  github_repo:
-    description: "GitHub Repo"
-    required: true
-  github_issue:
-    description: "GitHub Issue Number"
-    required: true
-  github_token:
+  repository:
+    description: "Repository name with owner. For example, kudoas/gis'"
+    default: ${{ github.repository }}
+  issue:
+    description: "The number that identifies the issue. Specify the child issue you wish to synchronize with the parent issue"
+    default: ${{ github.event.issue.number }}
+  token:
     description: "GitHub Token"
     required: true
 runs:
