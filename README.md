@@ -1,6 +1,7 @@
-# gis (GitHub Issue Syncer)
+# Sync Issue
 
-This action automatically synchronizes child and parent issue information
+This action automatically synchronizes child and parent issue information.
+If you create child issue from parent issue, the parent information is copied to the child.
 
 # Usage
 
@@ -22,12 +23,15 @@ with:
 
 <!-- end usage -->
 
-# Example
+# Example Workflow
+
+Create a [workflow](https://docs.github.com/en/actions/using-workflows) and save it as a `.yml` file in the `.github/workflows/` directory of your target repository.
 
 ```yml
 name: Sync issue
 on:
   issues:
+    types: [opened]
 
 # If use GITHUB_TOKEN, this permission is required.
 permissions:
@@ -40,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@main
       - name: Sync issue
-        uses: kudoas/gis@main
+        uses: kudoas/sync-issue@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
