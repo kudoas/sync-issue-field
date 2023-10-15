@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/shurcooL/githubv4"
@@ -67,6 +68,7 @@ func (p *ParentIssue) GetMilestoneID() *githubv4.ID {
 }
 
 func (p *ParentIssue) GetProjectID() githubv4.ID {
+	println(fmt.Sprintf("%+v", p.Node.Issue.ProjectItems.Nodes))
 	if len(p.Node.Issue.ProjectItems.Nodes) == 0 {
 		os.Exit(0)
 	}
