@@ -24,6 +24,9 @@ type ParentIssue struct {
 			} `graphql:"milestone"`
 			ProjectItems struct {
 				Nodes []struct {
+					Project struct {
+						ID githubv4.ID
+					}
 					FieldValues struct {
 						Nodes []struct {
 							OnProjectV2ItemFieldSingleSelectValue struct {
@@ -60,6 +63,10 @@ func (p *ParentIssue) GetLabelIDs() *[]githubv4.ID {
 
 func (p *ParentIssue) GetMilestoneID() *githubv4.ID {
 	return &p.Node.Issue.Milestone.ID
+}
+
+func (p *ParentIssue) GetProjectID() githubv4.ID {
+	return p.Node.Issue.ProjectItems.Nodes[0].Project.ID
 }
 
 func extractIDs(nodes []struct {
