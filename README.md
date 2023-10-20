@@ -1,7 +1,7 @@
-# Sync Issue
+# Sync Issue Field
 
-This action automatically synchronizes child and parent issue information.
-If you create child issue from parent issue, the parent information is copied to the child.
+This action automatically synchronizes child and parent issue field.
+If you create child issue from parent issue, the parent field is copied to the child.
 
 # Usage
 
@@ -9,7 +9,7 @@ If you create child issue from parent issue, the parent information is copied to
 
 ```yaml
 with:
-  # Repository name with owner. For example, kudoas/gis
+  # Repository name with owner. For example, kudoas/sync-issue-field
   # Default: ${{ github.repository }}
   repository: ""
 
@@ -18,6 +18,7 @@ with:
   issue: ""
 
   # Personal access token (PAT) used to fetch the repository.
+  # If you want to get an Item from Project v2, please issue PAT.
   token: ""
 ```
 
@@ -28,7 +29,7 @@ with:
 Create a [workflow](https://docs.github.com/en/actions/using-workflows) and save it as a `.yml` file in the `.github/workflows/` directory of your target repository.
 
 ```yml
-name: Sync issue
+name: Sync issue field
 on:
   issues:
     types: [opened]
@@ -42,9 +43,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
-      - name: Sync issue
-        uses: kudoas/sync-issue@main
+      - name: Sync issue field
+        uses: kudoas/sync-issue-field@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
