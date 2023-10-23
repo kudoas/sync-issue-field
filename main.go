@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kudoas/gis/mutate"
-	"github.com/kudoas/gis/query"
+	"github.com/kudoas/sync-issue-field/mutate"
+	"github.com/kudoas/sync-issue-field/query"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
