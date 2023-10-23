@@ -1,4 +1,4 @@
-FROM golang:1.21 as builder
+FROM golang:1.21.3-alpine as builder
 
 WORKDIR /app
 COPY . /app
@@ -6,7 +6,7 @@ COPY . /app
 RUN go get -d -v
 RUN CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app .
 
-FROM gcr.io/distroless/static
+FROM alpine:latest
 
 COPY --from=builder /app/app /app
 
