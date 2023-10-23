@@ -1,4 +1,4 @@
-module github.com/kudoas/gis
+module github.com/kudoas/sync-issue-field
 
 go 1.21.2
 
