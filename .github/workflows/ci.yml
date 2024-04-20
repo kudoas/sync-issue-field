@@ -1,8 +1,5 @@
 name: CI
 on: [push]
-permissions:
-  issues: write
-  repository-projects: write
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -18,4 +15,4 @@ jobs:
           CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app .
       - name: Integration Test
         run: |
-          INPUT_TOKEN=${{ secrets.GITHUB_TOKEN }} INPUT_REPOSITORY=kudoas/sync-issue-field INPUT_ISSUE=3 ./app
+          INPUT_TOKEN=${{ secrets.PAT }} INPUT_REPOSITORY=kudoas/sync-issue-field INPUT_ISSUE=3 ./app
