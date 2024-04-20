@@ -17,7 +17,7 @@ type IssueNodeID struct {
 					ID githubv4.ID
 				}
 			} `graphql:"trackedInIssues(first: 5)"`
-		} `graphql:"issue(number: $IssueID)"`
+		} `graphql:"issue(number: $issueID)"`
 	} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 }
 

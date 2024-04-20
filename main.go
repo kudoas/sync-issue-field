@@ -28,18 +28,17 @@ func main() {
 	client := githubv4.NewClient(httpClient)
 
 	i := query.NewIssueNodeID()
-	variable := map[string]interface{}{
+	if err := i.Query(client, context.Background(), map[string]interface{}{
 		"repositoryOwner": githubv4.String(owner),
 		"repositoryName":  githubv4.String(repository_name),
-		"issueNumber":     githubv4.Int(issue),
-	}
-	if err := i.Query(client, context.Background(), variable); err != nil {
+		"issueID":         githubv4.Int(issue),
+	}); err != nil {
 		log.Fatalf("failed to get issue id: %v", err)
 	}
 
 	ii := query.NewIssueItem()
 	if err := ii.Query(client, context.Background(), map[string]interface{}{
-		"issueID": githubv4.ID(i.GetIssueNodeID()),
+		"issueNodeID": githubv4.ID(i.GetIssueNodeID()),
 	}); err != nil {
 		log.Fatalf("failed to get parent issue: %v", err)
 	}
