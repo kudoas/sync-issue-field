@@ -8,7 +8,39 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-type ParentIssue struct {
+type IssueNodeID struct {
+	Repository struct {
+		Issue struct {
+			ID              githubv4.ID
+			TrackedInIssues struct {
+				Nodes []struct {
+					ID githubv4.ID
+				}
+			} `graphql:"trackedInIssues(first: 5)"`
+		} `graphql:"issue(number: $IssueID)"`
+	} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
+}
+
+func NewIssueNodeID() *IssueNodeID {
+	return &IssueNodeID{}
+}
+
+func (i *IssueNodeID) Query(client *githubv4.Client, ctx context.Context, variables map[string]interface{}) error {
+	return client.Query(ctx, &i, variables)
+}
+
+func (i *IssueNodeID) GetIssueNodeID() githubv4.ID {
+	return i.Repository.Issue.ID
+}
+
+func (i *IssueNodeID) GetParentIssueNodeID() githubv4.ID {
+	if len(i.Repository.Issue.TrackedInIssues.Nodes) == 0 {
+		os.Exit(0)
+	}
+	return i.Repository.Issue.TrackedInIssues.Nodes[0].ID
+}
+
+type IssueItem struct {
 	Node struct {
 		Issue struct {
 			Assignees struct {
@@ -44,30 +76,30 @@ type ParentIssue struct {
 				}
 			} `graphql:"projectItems(first: 5)"`
 		} `graphql:"... on Issue"`
-	} `graphql:"node(id: $issueID)"`
+	} `graphql:"node(id: $issueNodeID)"`
 }
 
-func NewParentIssue() *ParentIssue {
-	return &ParentIssue{}
+func NewIssueItem() *IssueItem {
+	return &IssueItem{}
 }
 
-func (p *ParentIssue) Query(client *githubv4.Client, ctx context.Context, variables map[string]interface{}) error {
+func (p *IssueItem) Query(client *githubv4.Client, ctx context.Context, variables map[string]interface{}) error {
 	return client.Query(ctx, &p, variables)
 }
 
-func (p *ParentIssue) GetAssigneeIDs() *[]githubv4.ID {
+func (p *IssueItem) GetAssigneeIDs() *[]githubv4.ID {
 	return extractIDs(p.Node.Issue.Assignees.Nodes)
 }
 
-func (p *ParentIssue) GetLabelIDs() *[]githubv4.ID {
+func (p *IssueItem) GetLabelIDs() *[]githubv4.ID {
 	return extractIDs(p.Node.Issue.Labels.Nodes)
 }
 
-func (p *ParentIssue) GetMilestoneID() *githubv4.ID {
+func (p *IssueItem) GetMilestoneID() *githubv4.ID {
 	return &p.Node.Issue.Milestone.ID
 }
 
-func (p *ParentIssue) GetProjectID() githubv4.ID {
+func (p *IssueItem) GetProjectID() githubv4.ID {
 	println(fmt.Sprintf("%+v", p.Node.Issue.ProjectItems.Nodes))
 	if len(p.Node.Issue.ProjectItems.Nodes) == 0 {
 		os.Exit(0)
