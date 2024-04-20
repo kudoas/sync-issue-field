@@ -13,12 +13,13 @@ with:
   # Default: ${{ github.repository }}
   repository: ""
 
-  # The number that identifies the issue. Specify the child issue you wish to synchronize with the parent issue
+  # The ID that identifies the issue. Specify the child issue you wish to synchronize with the parent issue
   # Default: ${{ github.event.issue.number }}
   issue: ""
 
-  # Personal access token (PAT) used to fetch the repository.
-  # If you want to get an Item from Project v2, please issue PAT.
+  # GitHub token used to fetch issue info from the repository.
+  # If you want to get an Item from user Projects (not classic), please issue Personal Access Token (PAT).
+  # refs. https://github.com/orgs/community/discussions/46681#discussioncomment-8774842
   token: ""
 ```
 
