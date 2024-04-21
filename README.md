@@ -17,8 +17,9 @@ with:
   # Default: ${{ github.event.issue.number }}
   issue: ""
 
-  # Personal access token (PAT) used to fetch the repository.
-  # If you want to get an Item from Project v2, please issue PAT.
+  # GitHub token used to fetch issue info from the repository.
+  # If you want to get an Item from user Projects (not classic), please issue Personal Access Token (PAT).
+  # refs. https://github.com/orgs/community/discussions/46681#discussioncomment-8774842
   token: ""
 ```
 
@@ -37,7 +38,7 @@ on:
 # If use GITHUB_TOKEN, this permission is required.
 permissions:
   issues: write
-  repository-projects: write
+  repository-projects: write # use for sync classic project
 
 jobs:
   build:
