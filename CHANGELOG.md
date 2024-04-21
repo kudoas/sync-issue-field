@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7](https://github.com/kudoas/sync-issue-field/compare/v0.0.6...v0.0.7) (2024-04-21)
+
+
+### Bug Fixes
+
+* use return early ([#19](https://github.com/kudoas/sync-issue-field/issues/19)) ([282d275](https://github.com/kudoas/sync-issue-field/commit/282d275d997b06fe4a0b2e944e27e9cf6f5f2b5b))
+
 ## [0.0.6](https://github.com/kudoas/sync-issue-field/compare/v0.0.5...v0.0.6) (2024-04-21)
 
 
