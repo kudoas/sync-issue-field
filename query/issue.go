@@ -2,7 +2,7 @@ package query
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/shurcooL/githubv4"
@@ -35,6 +35,7 @@ func (i *IssueID) GetIssueID() githubv4.ID {
 
 func (i *IssueID) GetParentIssueID() githubv4.ID {
 	if len(i.Repository.Issue.TrackedInIssues.Nodes) == 0 {
+		log.Println("not found parent issue")
 		os.Exit(0)
 	}
 	return i.Repository.Issue.TrackedInIssues.Nodes[0].ID
@@ -100,9 +101,8 @@ func (p *ParentIssue) GetMilestoneID() *githubv4.ID {
 }
 
 func (p *ParentIssue) GetProjectID() githubv4.ID {
-	println(fmt.Sprintf("%+v", p.Node.Issue.ProjectItems.Nodes))
 	if len(p.Node.Issue.ProjectItems.Nodes) == 0 {
-		os.Exit(0)
+		return nil
 	}
 	return p.Node.Issue.ProjectItems.Nodes[0].Project.ID
 }
