@@ -1,21 +1,18 @@
 name: CI
-on: [push]
-permissions:
-  issues: write
-  repository-projects: write
+on: pull_request
+
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.21
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Build
         run: |
           go get -d -v
           CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app .
       - name: Integration Test
         run: |
-          INPUT_TOKEN=${{ secrets.GITHUB_TOKEN }} INPUT_REPOSITORY=kudoas/sync-issue-field INPUT_ISSUE=3 ./app
+          INPUT_TOKEN=${{ secrets.PAT }} INPUT_REPOSITORY=kudoas/sync-issue-field INPUT_ISSUE=3 ./app

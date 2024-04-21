@@ -39,7 +39,7 @@ func main() {
 
 	p := query.NewParentIssue()
 	if err := p.Query(client, context.Background(), map[string]interface{}{
-		"issueID": githubv4.ID(i.GetParentIssueID()),
+		"issueNodeID": githubv4.ID(i.GetParentIssueID()),
 	}); err != nil {
 		log.Fatalf("failed to get parent issue: %v", err)
 	}
