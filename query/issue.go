@@ -76,7 +76,7 @@ type ParentIssue struct {
 				}
 			} `graphql:"projectItems(first: 5)"`
 		} `graphql:"... on Issue"`
-	} `graphql:"node(id: $issueID)"`
+	} `graphql:"node(id: $issueNodeID)"`
 }
 
 func NewParentIssue() *ParentIssue {
