@@ -43,6 +43,7 @@ func main() {
 	}); err != nil {
 		log.Fatalf("failed to get parent issue: %v", err)
 	}
+
 	mi := mutate.NewMutationIssue()
 	input := githubv4.UpdateIssueInput{
 		ID:          i.GetIssueID(),
@@ -53,7 +54,12 @@ func main() {
 	if err := mi.Mutate(client, context.Background(), input); err != nil {
 		log.Fatalf("failed to update issue: %v", err)
 	}
+
 	mp := mutate.NewMutationProject()
+	projectID := p.GetProjectID()
+	if projectID == nil {
+		return
+	}
 	if err := mp.Mutate(client, githubv4.AddProjectV2ItemByIdInput{
 		ProjectID: p.GetProjectID(),
 		ContentID: i.GetIssueID(),
