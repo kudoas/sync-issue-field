@@ -21,11 +21,7 @@ var (
 )
 
 func main() {
-	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	httpClient := oauth2.NewClient(context.Background(), src)
-	client := githubv4.NewClient(httpClient)
+	client := getGithubClient(token)
 
 	i := query.NewIssueID()
 	variable := map[string]interface{}{
@@ -66,4 +62,13 @@ func main() {
 	}); err != nil {
 		log.Fatalf("failed to add project item: %v", err)
 	}
+}
+
+func getGithubClient(token string) *githubv4.Client {
+	src := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+
+	client := oauth2.NewClient(context.Background(), src)
+	return githubv4.NewClient(client)
 }
