@@ -18,6 +18,6 @@ func NewMutationProject() *MutationProject {
 	return &MutationProject{}
 }
 
-func (m *MutationProject) Mutate(client *githubv4.Client, variables githubv4.AddProjectV2ItemByIdInput) error {
-	return client.Mutate(context.Background(), &m, variables, nil)
+func (m *MutationProject) Mutate(client *githubv4.Client, ctx context.Context, variables githubv4.AddProjectV2ItemByIdInput) error {
+	return client.Mutate(ctx, &m, variables, nil)
 }
