@@ -21,7 +21,8 @@ var (
 )
 
 func main() {
-	client := getGithubClient(token)
+	ctx := context.Background()
+	client := getGithubClient(token, ctx)
 
 	i := query.NewIssueID()
 	variable := map[string]interface{}{
@@ -29,12 +30,13 @@ func main() {
 		"repositoryName":  githubv4.String(repository_name),
 		"issueNumber":     githubv4.Int(issue),
 	}
-	if err := i.Query(client, context.Background(), variable); err != nil {
+
+	if err := i.Query(client, ctx, variable); err != nil {
 		log.Fatalf("failed to get issue id: %v", err)
 	}
 
 	p := query.NewParentIssue()
-	if err := p.Query(client, context.Background(), map[string]interface{}{
+	if err := p.Query(client, ctx, map[string]interface{}{
 		"issueNodeID": githubv4.ID(i.GetParentIssueID()),
 	}); err != nil {
 		log.Fatalf("failed to get parent issue: %v", err)
@@ -47,7 +49,7 @@ func main() {
 		LabelIDs:    p.GetLabelIDs(),
 		MilestoneID: p.GetMilestoneID(),
 	}
-	if err := mi.Mutate(client, context.Background(), input); err != nil {
+	if err := mi.Mutate(client, ctx, input); err != nil {
 		log.Fatalf("failed to update issue: %v", err)
 	}
 
@@ -56,7 +58,7 @@ func main() {
 	if projectID == nil {
 		return
 	}
-	if err := mp.Mutate(client, githubv4.AddProjectV2ItemByIdInput{
+	if err := mp.Mutate(client, ctx, githubv4.AddProjectV2ItemByIdInput{
 		ProjectID: p.GetProjectID(),
 		ContentID: i.GetIssueID(),
 	}); err != nil {
@@ -64,11 +66,11 @@ func main() {
 	}
 }
 
-func getGithubClient(token string) *githubv4.Client {
+func getGithubClient(token string, ctx context.Context) *githubv4.Client {
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
 
-	client := oauth2.NewClient(context.Background(), src)
+	client := oauth2.NewClient(ctx, src)
 	return githubv4.NewClient(client)
 }
