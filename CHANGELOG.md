@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.8](https://github.com/kudoas/sync-issue-field/compare/v0.0.7...v0.0.8) (2024-04-23)
+
+
+### Bug Fixes
+
+* move run command ([#27](https://github.com/kudoas/sync-issue-field/issues/27)) ([808f84f](https://github.com/kudoas/sync-issue-field/commit/808f84f2a33c2acc37fdec08b63c43d1d2b1ef46))
+* split github client package ([#24](https://github.com/kudoas/sync-issue-field/issues/24)) ([612fc87](https://github.com/kudoas/sync-issue-field/commit/612fc87672da69cdc629911ed83d7cf9b5af3187))
+
 ## [0.0.7](https://github.com/kudoas/sync-issue-field/compare/v0.0.6...v0.0.7) (2024-04-21)
 
 
