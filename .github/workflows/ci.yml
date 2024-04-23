@@ -9,10 +9,7 @@ jobs:
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5
         with:
           go-version-file: go.mod
-      - name: Build
-        run: |
-          go get -d -v
-          CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app .
+      - run: CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
       - name: Integration Test
         run: |
           INPUT_TOKEN=${{ secrets.PAT }} INPUT_REPOSITORY=kudoas/sync-issue-field INPUT_ISSUE=3 ./app
