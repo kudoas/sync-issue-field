@@ -39,6 +39,9 @@ func main() {
 		log.Fatalf("failed to update issue: %v", err)
 	}
 
+	if len(parentIssueFields.ProjectIDs) == 0 {
+		os.Exit(0)
+	}
 	if err := g.MutateProject(githubv4.AddProjectV2ItemByIdInput{
 		ProjectID: parentIssueFields.ProjectIDs[0],
 		ContentID: targetIssueNodeID,
