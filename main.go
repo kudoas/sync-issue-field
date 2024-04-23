@@ -7,8 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kudoas/sync-issue-field/mutate"
-	"github.com/kudoas/sync-issue-field/query"
+	"github.com/kudoas/sync-issue-field/infra"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -23,44 +22,29 @@ var (
 func main() {
 	ctx := context.Background()
 	client := getGithubClient(token, ctx)
+	g := infra.NewGithubClient(client, infra.WithContext(ctx))
 
-	i := query.NewIssueID()
-	variable := map[string]interface{}{
-		"repositoryOwner": githubv4.String(owner),
-		"repositoryName":  githubv4.String(repository_name),
-		"issueNumber":     githubv4.Int(issue),
-	}
+	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(repository_name, owner, issue)
+	targetIssueNodeID := g.GetIssueNodeID(repository_name, owner, issue)
+	parentIssueFields := g.GetIssueFields(&trackedIssueNodeIDs[0])
 
-	if err := i.Query(client, ctx, variable); err != nil {
-		log.Fatalf("failed to get issue id: %v", err)
-	}
-
-	p := query.NewParentIssue()
-	if err := p.Query(client, ctx, map[string]interface{}{
-		"issueNodeID": githubv4.ID(i.GetParentIssueID()),
-	}); err != nil {
-		log.Fatalf("failed to get parent issue: %v", err)
-	}
-
-	mi := mutate.NewMutationIssue()
-	input := githubv4.UpdateIssueInput{
-		ID:          i.GetIssueID(),
-		AssigneeIDs: p.GetAssigneeIDs(),
-		LabelIDs:    p.GetLabelIDs(),
-		MilestoneID: p.GetMilestoneID(),
-	}
-	if err := mi.Mutate(client, ctx, input); err != nil {
+	if err := g.MutateIssue(
+		githubv4.UpdateIssueInput{
+			ID:          targetIssueNodeID,
+			AssigneeIDs: &parentIssueFields.AssigneeIDs,
+			LabelIDs:    &parentIssueFields.LabelIDs,
+			MilestoneID: parentIssueFields.MilestoneID,
+		},
+	); err != nil {
 		log.Fatalf("failed to update issue: %v", err)
 	}
 
-	mp := mutate.NewMutationProject()
-	projectID := p.GetProjectID()
-	if projectID == nil {
-		return
+	if len(parentIssueFields.ProjectIDs) == 0 {
+		os.Exit(0)
 	}
-	if err := mp.Mutate(client, ctx, githubv4.AddProjectV2ItemByIdInput{
-		ProjectID: p.GetProjectID(),
-		ContentID: i.GetIssueID(),
+	if err := g.MutateProject(githubv4.AddProjectV2ItemByIdInput{
+		ProjectID: parentIssueFields.ProjectIDs[0],
+		ContentID: targetIssueNodeID,
 	}); err != nil {
 		log.Fatalf("failed to add project item: %v", err)
 	}
