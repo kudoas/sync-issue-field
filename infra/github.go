@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/shurcooL/githubv4"
+	"golang.org/x/oauth2"
 )
 
 type GithubClient struct {
@@ -22,7 +23,14 @@ func NewGithubClient(opt ...Option) *GithubClient {
 	return g
 }
 
-func WithClient(client *githubv4.Client) func(*GithubClient) {
+type GitHubToken string
+
+func WithClient(ctx context.Context, token string) func(*GithubClient) {
+	src := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	client := githubv4.NewClient(oauth2.NewClient(ctx, src))
+
 	return func(g *GithubClient) {
 		g.client = client
 	}
