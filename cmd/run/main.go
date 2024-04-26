@@ -9,7 +9,6 @@ import (
 
 	"github.com/kudoas/sync-issue-field/infra"
 	"github.com/shurcooL/githubv4"
-	"golang.org/x/oauth2"
 )
 
 var (
@@ -21,8 +20,10 @@ var (
 
 func main() {
 	ctx := context.Background()
-	client := getGithubClient(token, ctx)
-	g := infra.NewGithubClient(client, infra.WithContext(ctx))
+	g := infra.NewGithubClient(
+		infra.WithClient(ctx, token),
+		infra.WithContext(ctx),
+	)
 
 	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(repository_name, owner, issue)
 	targetIssueNodeID := g.GetIssueNodeID(repository_name, owner, issue)
@@ -48,13 +49,4 @@ func main() {
 	}); err != nil {
 		log.Fatalf("failed to add project item: %v", err)
 	}
-}
-
-func getGithubClient(token string, ctx context.Context) *githubv4.Client {
-	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-
-	client := oauth2.NewClient(ctx, src)
-	return githubv4.NewClient(client)
 }
