@@ -14,13 +14,18 @@ type GithubClient struct {
 
 type Option func(*GithubClient)
 
-func NewGithubClient(client *githubv4.Client, opt ...Option) *GithubClient {
-	g := &GithubClient{client: client}
+func NewGithubClient(opt ...Option) *GithubClient {
+	g := &GithubClient{}
 	for _, o := range opt {
 		o(g)
 	}
-
 	return g
+}
+
+func WithClient(client *githubv4.Client) func(*GithubClient) {
+	return func(g *GithubClient) {
+		g.client = client
+	}
 }
 
 func WithContext(ctx context.Context) func(*GithubClient) {

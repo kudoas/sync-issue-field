@@ -22,7 +22,10 @@ var (
 func main() {
 	ctx := context.Background()
 	client := getGithubClient(token, ctx)
-	g := infra.NewGithubClient(client, infra.WithContext(ctx))
+	g := infra.NewGithubClient(
+		infra.WithClient(client),
+		infra.WithContext(ctx),
+	)
 
 	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(repository_name, owner, issue)
 	targetIssueNodeID := g.GetIssueNodeID(repository_name, owner, issue)
