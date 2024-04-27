@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	token                  = os.Getenv("INPUT_TOKEN")
-	repository             = strings.Split(os.Getenv("INPUT_REPOSITORY"), "/")
-	owner, repository_name = repository[0], repository[1]
-	issue, _               = strconv.Atoi(os.Getenv("INPUT_ISSUE"))
+	token                 = os.Getenv("INPUT_TOKEN")
+	repository            = strings.Split(os.Getenv("INPUT_REPOSITORY"), "/")
+	owner, repositoryName = repository[0], repository[1]
+	issue, _              = strconv.Atoi(os.Getenv("INPUT_ISSUE"))
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 
 	q := infra.QueryRequest{
 		RepositoryOwner: owner,
-		RepositoryName:  repository_name,
+		RepositoryName:  repositoryName,
 		IssueNumber:     issue,
 	}
 	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(&q)
