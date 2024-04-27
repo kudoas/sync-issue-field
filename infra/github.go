@@ -42,55 +42,59 @@ func WithContext(ctx context.Context) func(*GithubClient) {
 	}
 }
 
-func (g *GithubClient) GetTrackedIssueNodeIDs(repoName string, ownerName string, issueNumber int) []githubv4.ID {
-	var query struct {
-		Repository struct {
-			Issue struct {
-				ID              githubv4.ID
-				TrackedInIssues struct {
-					Nodes []struct {
-						ID githubv4.ID
-					}
-				} `graphql:"trackedInIssues(first: 5)"`
-			} `graphql:"issue(number: $issueNumber)"`
-		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
-	}
+var issueQuery struct {
+	Repository struct {
+		Issue struct {
+			ID              githubv4.ID
+			TrackedInIssues struct {
+				Nodes []struct {
+					ID githubv4.ID
+				}
+			} `graphql:"trackedInIssues(first: 5)"`
+		} `graphql:"issue(number: $issueNumber)"`
+	} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
+}
 
-	if err := g.client.Query(g.ctx, &query, map[string]interface{}{
-		"repositoryOwner": githubv4.String(ownerName),
-		"repositoryName":  githubv4.String(repoName),
-		"issueNumber":     githubv4.Int(issueNumber),
+type QueryRequest struct {
+	RepositoryOwner string
+	RepositoryName  string
+	IssueNumber     int
+}
+
+func (g *GithubClient) GetTrackedIssueNodeIDs(q *QueryRequest) []githubv4.ID {
+	if err := g.client.Query(g.ctx, &issueQuery, map[string]interface{}{
+		"repositoryOwner": githubv4.String(q.RepositoryOwner),
+		"repositoryName":  githubv4.String(q.RepositoryName),
+		"issueNumber":     githubv4.Int(q.IssueNumber),
 	}); err != nil {
 		log.Fatalf("failed to get tracked issue NodeID: %v", err)
 	}
 
 	var ids []githubv4.ID
-	for _, node := range query.Repository.Issue.TrackedInIssues.Nodes {
+
+	for _, node := range issueQuery.Repository.Issue.TrackedInIssues.Nodes {
 		ids = append(ids, node.ID)
 	}
 
 	return ids
 }
 
-// TODO: GetIssueNodeID and GetIssueFields can be combined into one function
-func (g *GithubClient) GetIssueNodeID(repoName string, ownerName string, issueNumber int) *githubv4.ID {
-	var query struct {
-		Repository struct {
-			Issue struct {
-				ID githubv4.ID
-			} `graphql:"issue(number: $issueNumber)"`
-		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
+func (g *GithubClient) GetIssueNodeID(q *QueryRequest) *githubv4.ID {
+	// If the issue is already tracked, return the issue NodeID directly
+	// TODO(bug): If QueryResult is not same, it should request to get issue NodeID
+	if issueQuery.Repository.Issue.ID != "" {
+		return &issueQuery.Repository.Issue.ID
 	}
 
-	if err := g.client.Query(g.ctx, &query, map[string]interface{}{
-		"repositoryOwner": githubv4.String(ownerName),
-		"repositoryName":  githubv4.String(repoName),
-		"issueNumber":     githubv4.Int(issueNumber),
+	if err := g.client.Query(g.ctx, &issueQuery, map[string]interface{}{
+		"repositoryOwner": githubv4.String(q.RepositoryOwner),
+		"repositoryName":  githubv4.String(q.RepositoryName),
+		"issueNumber":     githubv4.Int(q.IssueNumber),
 	}); err != nil {
 		log.Fatalf("failed to get issue NodeID: %v", err)
 	}
 
-	return &query.Repository.Issue.ID
+	return &issueQuery.Repository.Issue.ID
 }
 
 type IssueFields struct {

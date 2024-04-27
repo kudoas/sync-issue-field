@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	token                  = os.Getenv("INPUT_TOKEN")
-	repository             = strings.Split(os.Getenv("INPUT_REPOSITORY"), "/")
-	owner, repository_name = repository[0], repository[1]
-	issue, _               = strconv.Atoi(os.Getenv("INPUT_ISSUE"))
+	token                 = os.Getenv("INPUT_TOKEN")
+	repository            = strings.Split(os.Getenv("INPUT_REPOSITORY"), "/")
+	owner, repositoryName = repository[0], repository[1]
+	issue, _              = strconv.Atoi(os.Getenv("INPUT_ISSUE"))
 )
 
 func main() {
@@ -25,8 +25,13 @@ func main() {
 		infra.WithContext(ctx),
 	)
 
-	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(repository_name, owner, issue)
-	targetIssueNodeID := g.GetIssueNodeID(repository_name, owner, issue)
+	q := infra.QueryRequest{
+		RepositoryOwner: owner,
+		RepositoryName:  repositoryName,
+		IssueNumber:     issue,
+	}
+	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(&q)
+	targetIssueNodeID := g.GetIssueNodeID(&q)
 	parentIssueFields := g.GetIssueFields(&trackedIssueNodeIDs[0])
 
 	if err := g.MutateIssue(
