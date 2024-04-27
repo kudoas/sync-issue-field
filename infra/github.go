@@ -55,11 +55,17 @@ var issueQuery struct {
 	} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 }
 
-func (g *GithubClient) GetTrackedIssueNodeIDs(repoName string, ownerName string, issueNumber int) []githubv4.ID {
+type QueryRequest struct {
+	RepositoryOwner string
+	RepositoryName  string
+	IssueNumber     int
+}
+
+func (g *GithubClient) GetTrackedIssueNodeIDs(q *QueryRequest) []githubv4.ID {
 	if err := g.client.Query(g.ctx, &issueQuery, map[string]interface{}{
-		"repositoryOwner": githubv4.String(ownerName),
-		"repositoryName":  githubv4.String(repoName),
-		"issueNumber":     githubv4.Int(issueNumber),
+		"repositoryOwner": githubv4.String(q.RepositoryOwner),
+		"repositoryName":  githubv4.String(q.RepositoryName),
+		"issueNumber":     githubv4.Int(q.IssueNumber),
 	}); err != nil {
 		log.Fatalf("failed to get tracked issue NodeID: %v", err)
 	}
@@ -73,15 +79,17 @@ func (g *GithubClient) GetTrackedIssueNodeIDs(repoName string, ownerName string,
 	return ids
 }
 
-func (g *GithubClient) GetIssueNodeID(repoName string, ownerName string, issueNumber int) *githubv4.ID {
+func (g *GithubClient) GetIssueNodeID(q *QueryRequest) *githubv4.ID {
+	// If the issue is already tracked, return the issue NodeID directly
+	// TODO(bug): If QueryResult is not same, it should request to get issue NodeID
 	if issueQuery.Repository.Issue.ID != "" {
 		return &issueQuery.Repository.Issue.ID
 	}
 
 	if err := g.client.Query(g.ctx, &issueQuery, map[string]interface{}{
-		"repositoryOwner": githubv4.String(ownerName),
-		"repositoryName":  githubv4.String(repoName),
-		"issueNumber":     githubv4.Int(issueNumber),
+		"repositoryOwner": githubv4.String(q.RepositoryOwner),
+		"repositoryName":  githubv4.String(q.RepositoryName),
+		"issueNumber":     githubv4.Int(q.IssueNumber),
 	}); err != nil {
 		log.Fatalf("failed to get issue NodeID: %v", err)
 	}

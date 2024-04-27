@@ -25,8 +25,13 @@ func main() {
 		infra.WithContext(ctx),
 	)
 
-	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(repository_name, owner, issue)
-	targetIssueNodeID := g.GetIssueNodeID(repository_name, owner, issue)
+	q := infra.QueryRequest{
+		RepositoryOwner: owner,
+		RepositoryName:  repository_name,
+		IssueNumber:     issue,
+	}
+	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(&q)
+	targetIssueNodeID := g.GetIssueNodeID(&q)
 	parentIssueFields := g.GetIssueFields(&trackedIssueNodeIDs[0])
 
 	if err := g.MutateIssue(
