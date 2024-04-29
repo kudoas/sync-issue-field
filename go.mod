@@ -3,7 +3,7 @@ module github.com/kudoas/sync-issue-field
 go 1.22.2
 
 require (
-	github.com/shurcooL/githubv4 v0.0.0-20240120211514-18a1ae0e79dc
+	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
 	golang.org/x/oauth2 v0.19.0
 )
 
