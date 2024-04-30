@@ -4,31 +4,28 @@ import (
 	"context"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
+	"github.com/kudoas/sync-issue-field/config"
 	"github.com/kudoas/sync-issue-field/infra"
 	"github.com/shurcooL/githubv4"
 )
 
-var (
-	token                 = os.Getenv("INPUT_TOKEN")
-	repository            = strings.Split(os.Getenv("INPUT_REPOSITORY"), "/")
-	owner, repositoryName = repository[0], repository[1]
-	issue, _              = strconv.Atoi(os.Getenv("INPUT_ISSUE"))
-)
-
 func main() {
+	env, err := config.ProvideEnv()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	ctx := context.Background()
 	g := infra.NewGithubClient(
-		infra.WithClient(ctx, token),
+		infra.WithClient(ctx, env.Token()),
 		infra.WithContext(ctx),
 	)
 
 	q := infra.QueryRequest{
-		RepositoryOwner: owner,
-		RepositoryName:  repositoryName,
-		IssueNumber:     issue,
+		RepositoryOwner: env.RepoOwner(),
+		RepositoryName:  env.RepoName(),
+		IssueNumber:     env.IssueNumber(),
 	}
 	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(&q)
 	targetIssueNodeID := g.GetIssueNodeID(&q)
