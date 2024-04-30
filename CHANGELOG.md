@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.0](https://github.com/kudoas/sync-issue-field/compare/v0.0.8...v0.1.0) (2024-04-30)
+
+
+### Features
+
+* validate env config ([#33](https://github.com/kudoas/sync-issue-field/issues/33)) ([7efd80f](https://github.com/kudoas/sync-issue-field/commit/7efd80ff5c5c9708958f6f983352334f0a0914e6))
+
+
+### Bug Fixes
+
+* **deps:** update github.com/shurcool/githubv4 digest to be2daab ([#32](https://github.com/kudoas/sync-issue-field/issues/32)) ([c6bd06f](https://github.com/kudoas/sync-issue-field/commit/c6bd06f97010de89705bf0a35962dcc9830b8d4b))
+
+
+### Performance Improvements
+
+* **request:** get issue information in a single request ([#30](https://github.com/kudoas/sync-issue-field/issues/30)) ([2240b79](https://github.com/kudoas/sync-issue-field/commit/2240b79ac6766f7687521637444d6917da6016c4))
+
 ## [0.0.8](https://github.com/kudoas/sync-issue-field/compare/v0.0.7...v0.0.8) (2024-04-23)
 
 
