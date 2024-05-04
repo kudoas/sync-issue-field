@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/kudoas/sync-issue-field/compare/v0.1.0...v0.1.1) (2024-05-04)
+
+
+### Bug Fixes
+
+* **deps:** update module golang.org/x/oauth2 to v0.20.0 ([#35](https://github.com/kudoas/sync-issue-field/issues/35)) ([d48d03e](https://github.com/kudoas/sync-issue-field/commit/d48d03e96bb046accd37e680ea93ed2620fce3e4))
+
 ## [0.1.0](https://github.com/kudoas/sync-issue-field/compare/v0.0.8...v0.1.0) (2024-04-30)
 
 
