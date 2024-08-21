@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/kudoas/sync-issue-field/config"
-	"github.com/kudoas/sync-issue-field/infra"
+	"github.com/kudoas/sync-issue-field/infra/github"
 	"github.com/shurcooL/githubv4"
 )
 
@@ -17,26 +17,38 @@ func main() {
 	}
 
 	ctx := context.Background()
-	g := infra.NewGithubClient(
-		infra.WithClient(ctx, env.Token()),
-		infra.WithContext(ctx),
+	g := github.NewGithubClient(
+		ctx, env.Token(),
 	)
 
-	q := infra.QueryRequest{
+	q := github.QueryRequest{
 		RepositoryOwner: env.RepoOwner(),
 		RepositoryName:  env.RepoName(),
 		IssueNumber:     env.IssueNumber(),
 	}
-	trackedIssueNodeIDs := g.GetTrackedIssueNodeIDs(&q)
-	targetIssueNodeID := g.GetIssueNodeID(&q)
-	parentIssueFields := g.GetIssueFields(&trackedIssueNodeIDs[0])
+	trackedIssueNodeIDs, err := g.GetTrackedIssueNodeIDs(&q)
+	if err != nil {
+		log.Fatalf("failed to get tracked issue node ids: %v", err)
+	}
+	targetIssueNodeID, err := g.GetIssueNodeID(&q)
+	if err != nil {
+		log.Fatalf("failed to get issue node id: %v", err)
+	}
+	if len(trackedIssueNodeIDs) == 0 {
+		os.Exit(0)
+	}
+	parentID := trackedIssueNodeIDs[0]
+	parentIssueFields, err := g.GetIssueFields(parentID)
+	if err != nil {
+		log.Fatalf("failed to get issue fields: %v", err)
+	}
 
 	if err := g.MutateIssue(
 		githubv4.UpdateIssueInput{
 			ID:          targetIssueNodeID,
 			AssigneeIDs: &parentIssueFields.AssigneeIDs,
 			LabelIDs:    &parentIssueFields.LabelIDs,
-			MilestoneID: parentIssueFields.MilestoneID,
+			MilestoneID: &parentIssueFields.MilestoneID,
 		},
 	); err != nil {
 		log.Fatalf("failed to update issue: %v", err)
