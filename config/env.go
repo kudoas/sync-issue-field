@@ -20,14 +20,6 @@ var (
 	issue      = os.Getenv("INPUT_ISSUE")
 )
 
-type EnvInvalidError struct {
-	message string
-}
-
-func (e *EnvInvalidError) Error() string {
-	return fmt.Sprintf("environment variable invalid error: %v", e.message)
-}
-
 func ProvideEnv() (*Env, error) {
 	r := strings.Split(repository, "/")
 	var (
@@ -72,4 +64,16 @@ func (e *Env) RepoName() string {
 
 func (e *Env) IssueNumber() int {
 	return e.issueNumber
+}
+
+type EnvInvalidError struct {
+	message string
+}
+
+func (e *EnvInvalidError) Error() string {
+	return fmt.Sprintf("environment variable invalid error: %v", e.message)
+}
+
+func (e *EnvInvalidError) Unwrap() error {
+	return e
 }

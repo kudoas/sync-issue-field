@@ -17,15 +17,12 @@ func (g *githubClient) GetTrackedIssueNodeIDs(q *QueryRequest) ([]githubv4.ID, e
 			} `graphql:"issue(number: $issueNumber)"`
 		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 	}
-
 	variables := map[string]interface{}{
 		"repositoryOwner": githubv4.String(q.RepositoryOwner),
 		"repositoryName":  githubv4.String(q.RepositoryName),
 		"issueNumber":     githubv4.Int(q.IssueNumber),
 	}
-
-	err := g.client.Query(g.context, &query, variables)
-	if err != nil {
+	if err := g.client.Query(g.context, &query, variables); err != nil {
 		return nil, err
 	}
 
@@ -44,15 +41,12 @@ func (g *githubClient) GetIssueNodeID(q *QueryRequest) (githubv4.ID, error) {
 			} `graphql:"issue(number: $issueNumber)"`
 		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 	}
-
 	variables := map[string]interface{}{
 		"repositoryOwner": githubv4.String(q.RepositoryOwner),
 		"repositoryName":  githubv4.String(q.RepositoryName),
 		"issueNumber":     githubv4.Int(q.IssueNumber),
 	}
-
-	err := g.client.Query(g.context, &query, variables)
-	if err != nil {
+	if err := g.client.Query(g.context, &query, variables); err != nil {
 		return nil, err
 	}
 
@@ -136,8 +130,7 @@ func (g *githubClient) MutateIssue(input githubv4.UpdateIssueInput) error {
 		} `graphql:"updateIssue(input: $input)"`
 	}
 
-	err := g.client.Mutate(g.context, &mutation, input, nil)
-	if err != nil {
+	if err := g.client.Mutate(g.context, &mutation, input, nil); err != nil {
 		return err
 	}
 
