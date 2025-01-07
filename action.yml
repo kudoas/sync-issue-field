@@ -1,6 +1,9 @@
 name: "Sync Issue Field"
 description: "Sync GitHub parent issue's fields to child issue's fields."
 author: "kudoas"
+branding:
+  color: green
+  icon: shield
 inputs:
   repository:
     description: "Repository name with owner. For example, kudoas/sync-issue-field. Default is the current repository."
