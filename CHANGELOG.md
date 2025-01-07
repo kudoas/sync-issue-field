@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.3](https://github.com/kudoas/sync-issue-field/compare/v0.1.2...v0.1.3) (2025-01-07)
+
+
+### Bug Fixes
+
+* **deps:** update github.com/shurcool/githubv4 digest to 4829585 ([#56](https://github.com/kudoas/sync-issue-field/issues/56)) ([0711980](https://github.com/kudoas/sync-issue-field/commit/0711980c877ae84fe9511ab6fcadc99ef97c121a))
+* **deps:** update module golang.org/x/oauth2 to v0.22.0 ([#57](https://github.com/kudoas/sync-issue-field/issues/57)) ([346ae92](https://github.com/kudoas/sync-issue-field/commit/346ae92c2d012f11aca947543a322bacd5dfe7b5))
+* set branding ([#69](https://github.com/kudoas/sync-issue-field/issues/69)) ([8ffc125](https://github.com/kudoas/sync-issue-field/commit/8ffc1253a69600718ee556e13e41d9eb138ebf0a))
+* unwrap error  ([#61](https://github.com/kudoas/sync-issue-field/issues/61)) ([887f041](https://github.com/kudoas/sync-issue-field/commit/887f041db018fa2259494c1240d6fc795560bcbe))
+
 ## [0.1.2](https://github.com/kudoas/sync-issue-field/compare/v0.1.1...v0.1.2) (2024-06-05)
 
 
