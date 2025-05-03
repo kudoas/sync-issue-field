@@ -14,32 +14,28 @@ type Env struct {
 	issueNumber int
 }
 
-var (
-	token      = os.Getenv("GITHUB_TOKEN")
-	repository = os.Getenv("GITHUB_REPOSITORY")
-	issue      = os.Getenv("GITHUB_ISSUE")
-)
-
 func ProvideEnv() (*Env, error) {
-	// print env
-	fmt.Println("GITHUB_REPOSITORY", repository)
-	fmt.Println("GITHUB_ISSUE", issue)
-
 	token := os.Getenv("GITHUB_TOKEN")
+	repository := os.Getenv("GITHUB_REPOSITORY")
+	issueStr := os.Getenv("GITHUB_ISSUE")
+
+	fmt.Println("GITHUB_REPOSITORY", repository)
+	fmt.Println("GITHUB_ISSUE", issueStr)
+
 	r := strings.Split(repository, "/")
+	if len(r) != 2 || r[0] == "" || r[1] == "" {
+		return nil, &EnvInvalidError{"Repository format is incorrect"}
+	}
 	var (
 		repoOwner = r[0]
 		repoName  = r[1]
 	)
-	if (repoOwner == "" || repoName == "") || len(r) != 2 {
-		return nil, &EnvInvalidError{"Repository format is incorrect"}
-	}
 
 	if token == "" {
 		return nil, &EnvInvalidError{"Token is not set"}
 	}
 
-	issue, err := strconv.Atoi(issue)
+	issue, err := strconv.Atoi(issueStr)
 	if err != nil {
 		return nil, &EnvInvalidError{"Issue number can't parse to int"}
 	}

@@ -12,4 +12,4 @@ jobs:
       - run: CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
       - name: Integration Test
         run: |
-          INPUT_TOKEN=${{ secrets.PAT }} INPUT_REPOSITORY=kudoas/sync-issue-field INPUT_ISSUE=3 ./app
+          GITHUB_TOKEN=${{ secrets.PAT }} GITHUB_REPOSITORY=kudoas/sync-issue-field GITHUB_ISSUE=3 ./app
