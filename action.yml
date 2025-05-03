@@ -19,3 +19,7 @@ runs:
   steps:
     - run: ${{ github.action_path }}/dist/app
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        REPOSITORY: ${{ inputs.repository }}
+        ISSUE: ${{ inputs.issue }}
