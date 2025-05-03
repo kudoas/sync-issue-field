@@ -15,9 +15,9 @@ type Env struct {
 }
 
 var (
-	token      = os.Getenv("INPUT_TOKEN")
-	repository = os.Getenv("INPUT_REPOSITORY")
-	issue      = os.Getenv("INPUT_ISSUE")
+	token      = os.Getenv("GITHUB_TOKEN")
+	repository = os.Getenv("GITHUB_REPOSITORY")
+	issue      = os.Getenv("GITHUB_ISSUE")
 )
 
 func ProvideEnv() (*Env, error) {
