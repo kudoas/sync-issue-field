@@ -13,7 +13,37 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee # v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      # Build and commit the binary before release-please
+      - name: Build and Commit Binary
+        run: |
+          CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
+          mkdir -p dist
+          mv app dist/
+
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add dist/app
+          git status
+          git commit -m "Build and update binary" || echo "No changes to commit"
+          # No need to push here, release-please will read the commit
+
+      - name: Run release-please
+        uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee # v4
+        id: release
         with:
           release-type: go
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # If a new release was created, push the changes including the binary commit
+      # The push will happen after release-please creates the tag/release PR
+      - name: Push changes after release-please (if release created)
+        if: ${{ steps.release.outputs.release_created }}
+        run: git push origin HEAD
