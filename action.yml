@@ -15,5 +15,7 @@ inputs:
     description: "GitHub Token"
     required: true
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: "composite"
+  steps:
+    - run: ${{ github.action_path }}/dist/app
+      shell: bash
