@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0](https://github.com/kudoas/sync-issue-field/compare/v0.1.3...v0.2.0) (2025-05-03)
+
+
+### Features
+
+* Add check for changes before creating pull request with binary ([#82](https://github.com/kudoas/sync-issue-field/issues/82)) ([7505e7b](https://github.com/kudoas/sync-issue-field/commit/7505e7b75048d9f333263efc982507920b0ade4f))
+* Add GitHub Actions workflow to build binary and create PR ([0dd8cae](https://github.com/kudoas/sync-issue-field/commit/0dd8caeb556749470053a5d9febbf9b537abd502))
+* Optimize build process and update documentation ([#70](https://github.com/kudoas/sync-issue-field/issues/70)) ([b513e9b](https://github.com/kudoas/sync-issue-field/commit/b513e9be99a22a87c0f1148eb6dd8d411f4c5fa8))
+
+
+### Bug Fixes
+
+* update release workflow to build and commit binary after release-please step ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
+* update release workflow to build and commit binary after release… ([#72](https://github.com/kudoas/sync-issue-field/issues/72)) ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
+
 ## [0.1.3](https://github.com/kudoas/sync-issue-field/compare/v0.1.2...v0.1.3) (2025-01-07)
 
 
