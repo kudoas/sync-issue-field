@@ -1,4 +1,4 @@
-# Sync Issue Field GitHub Action
+# Sync Issue Field
 
 [![release-please](https://github.com/kudoas/sync-issue-field/actions/workflows/release.yml/badge.svg)](https://github.com/kudoas/sync-issue-field/actions/workflows/release.yml)
 [![Build and Commit Binary](https://github.com/kudoas/sync-issue-field/actions/workflows/build-and-commit-binary.yml/badge.svg)](https://github.com/kudoas/sync-issue-field/actions/workflows/build-and-commit-binary.yml)
@@ -18,7 +18,7 @@ name: Sync Issue Fields on Open
 
 on:
   issues:
-    types: [opened, edited, labeled, unlabeled, assigned, milestone]
+    types: [opened, edited, labeled, unlabeled, assigned]
 
 permissions:
   issues: write
