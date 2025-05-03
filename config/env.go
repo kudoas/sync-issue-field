@@ -21,6 +21,11 @@ var (
 )
 
 func ProvideEnv() (*Env, error) {
+	// print env
+	fmt.Println("GITHUB_REPOSITORY", repository)
+	fmt.Println("GITHUB_ISSUE", issue)
+
+	token := os.Getenv("GITHUB_TOKEN")
 	r := strings.Split(repository, "/")
 	var (
 		repoOwner = r[0]
