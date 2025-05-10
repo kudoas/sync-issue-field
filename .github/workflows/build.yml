@@ -1,6 +1,6 @@
 name: Build and Create PR for Binary
 on:
-  pull_request:
+  push:
     paths-ignore:
       - '*.md'
       - 'renovate.json'
