@@ -1,46 +1,35 @@
 name: Build and Create PR for Binary
-
-on: pull_request
+on:
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'renovate.json'
+      - '.env.sample'
+      - '.github/workflows/*.yml'
 
 permissions:
-  contents: write # コミットとブランチ作成に必要
-  pull-requests: write # PR作成に必要
+  contents: write
+  pull-requests: write
 
 jobs:
   build_and_create_pr:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          # The create-pull-request action needs the GITHUB_TOKEN checkout
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.23 # 使用するGoのバージョンを指定
-
+          go-version: 1.23
       - name: Build binary
         run: |
           CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
           mkdir -p dist
           mv app dist/
-
       - name: Check for changes
-        id: check_changes
-        run: |
-          git status --porcelain > ./.git-status
-          # If .git-status is not empty, there are changes
-          if [ -s ./.git-status ]; then
-            echo "changes_exist=true" >> $GITHUB_OUTPUT
-          else
-            echo "changes_exist=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Pull Request with Binary
-        if: ${{ steps.check_changes.outputs.changes_exist == 'true' }}
+        id: check_diff
+        run: git diff --exit-code
+        continue-on-error: true
+      - name: Create Pull Request
+        if: steps.check_diff.outcome == 'failure'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
