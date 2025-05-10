@@ -2,7 +2,7 @@ module github.com/kudoas/sync-issue-field
 
 go 1.23.0
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
