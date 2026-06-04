@@ -6,7 +6,7 @@ toolchain go1.24.2
 
 require (
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
-	go.uber.org/mock v0.5.2
+	go.uber.org/mock v0.6.0
 	golang.org/x/oauth2 v0.30.0
 )
 
