@@ -11,7 +11,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
 
-FROM alpine:latest@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+FROM alpine:latest@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 
 COPY --from=builder /app/app /app
 
