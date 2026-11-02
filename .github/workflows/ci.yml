@@ -1,15 +1,55 @@
 name: CI
-on: pull_request
+on: [pull_request, workflow_dispatch]
 
 jobs:
-  ci:
+  distribution:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version-file: go.mod
+      - name: Build release assets
+        run: bash scripts/build-release.sh "$RUNNER_TEMP/release"
+      - name: Test the packaged binaries and launcher
+        run: go test ./tests -count=1 -v
+        env:
+          RELEASE_ASSET_DIR: ${{ runner.temp }}/release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-binaries
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+      - name: Stage an offline release for the composite Action
+        run: |
+          go test -c -o "$RUNNER_TEMP/distribution.test" ./tests
+          PREPARE_COMPOSITE_FIXTURE=1 "$RUNNER_TEMP/distribution.test"
+      - name: Run the composite Action with release fixtures
+        uses: ./
+        with:
+          token: fixture-token
+          repository: example/consumer
+          issue: '133'
+      - name: Verify that the composite Action executed the downloaded asset
+        run: test "$(cat "$FIXTURE_RESULT")" = executed
+
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version-file: go.mod
       - run: CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
-      - name: Integration Test
-        run: |
-          GITHUB_TOKEN=${{ secrets.PAT }} GITHUB_REPOSITORY=kudoas/sync-issue-field GITHUB_ISSUE=3 ./app
+      - name: Go tests (including HTTP integration fixtures)
+        run: go test ./... -count=1
+      - name: Go vet
+        run: go vet ./...

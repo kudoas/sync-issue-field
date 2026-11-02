@@ -4,23 +4,63 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft or published release version to retry
+        required: true
+        type: string
+      source-sha:
+        description: Full source commit SHA recorded in the release
+        required: true
+        type: string
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      sha: ${{ steps.release.outputs.sha }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run release-please
+      - name: Create draft release with release-please
         uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee # v4
         id: release
         with:
-          release-type: go
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}
+          skip-github-pull-request: true
+
+      - name: Prepare the next release PR with release-please
+        if: steps.release.outputs.release_created != 'true'
+        uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee # v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skip-github-release: true
+
+  publish:
+    needs: release-please
+    if: >-
+      ${{ !cancelled() && !failure() &&
+          (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
+    uses: ./.github/workflows/build.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+      source-sha: ${{ needs.release-please.outputs.sha || inputs.source-sha }}
+    permissions:
+      contents: write

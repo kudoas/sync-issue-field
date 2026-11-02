@@ -17,9 +17,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: ${{ github.action_path }}/dist/app
+    - name: Download and run the release binary
+      run: bash "$ACTION_PATH/scripts/run-action.sh"
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.token }}
-        GITHUB_REPOSITORY: ${{ inputs.repository }}
-        GITHUB_ISSUE: ${{ inputs.issue }}
+        ACTION_PATH: ${{ github.action_path }}
+        ACTION_REPOSITORY: ${{ github.action_repository || github.repository }}
+        ACTION_REF: ${{ github.action_ref }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_ISSUE: ${{ inputs.issue }}
