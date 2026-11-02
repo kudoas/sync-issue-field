@@ -86,10 +86,11 @@ func TestLiveIssueSync(t *testing.T) {
 	if os.Getenv("LIVE_RELEASE_TEST") != "1" {
 		t.Skip("live verification is opt-in")
 	}
-	repo, path := os.Getenv("GITHUB_REPOSITORY"), os.Getenv("LIVE_STATE")
-	if repo != "kudoas/sync-issue-field" || path == "" {
+	repo := os.Getenv("GITHUB_REPOSITORY")
+	if repo != "kudoas/sync-issue-field" || os.Getenv("RUNNER_TEMP") == "" {
 		t.Fatal("unexpected verification repository or missing state path")
 	}
+	path := filepath.Join(os.Getenv("RUNNER_TEMP"), "live-fixture.json")
 	prefix := "/repos/" + repo
 	var state liveState
 	if data, err := os.ReadFile(path); err == nil {
@@ -152,7 +153,8 @@ func TestLiveIssueSync(t *testing.T) {
 		}
 		// Record both tracking mechanisms; only checklist tracking is asynchronous.
 		var tracking struct {
-			Data struct {
+			Errors []struct{ Message string }
+			Data   struct {
 				Repository struct {
 					Issue struct {
 						TrackedInIssues struct{ Nodes []struct{ ID string } }
@@ -165,6 +167,9 @@ func TestLiveIssueSync(t *testing.T) {
 		for attempt := 0; attempt < 10; attempt++ {
 			if err := liveAPI("POST", "/graphql", map[string]interface{}{"query": query}, &tracking); err != nil {
 				t.Fatal(err)
+			}
+			if len(tracking.Errors) > 0 {
+				t.Fatalf("tracking query failed: %v", tracking.Errors)
 			}
 			if os.Getenv("LIVE_RELATION") == "sub-issue" || len(tracking.Data.Repository.Issue.TrackedInIssues.Nodes) > 0 {
 				break
