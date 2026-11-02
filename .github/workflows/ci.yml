@@ -16,7 +16,7 @@ jobs:
       - name: Build release assets
         run: bash scripts/build-release.sh "$RUNNER_TEMP/release"
       - name: Test the packaged binaries and launcher
-        run: python3 -m unittest discover -s tests -v
+        run: go test ./tests -count=1 -v
         env:
           RELEASE_ASSET_DIR: ${{ runner.temp }}/release
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -25,7 +25,9 @@ jobs:
           path: ${{ runner.temp }}/release/
           if-no-files-found: error
       - name: Stage an offline release for the composite Action
-        run: python3 tests/prepare_composite_fixture.py
+        run: |
+          go test -c -o "$RUNNER_TEMP/distribution.test" ./tests
+          PREPARE_COMPOSITE_FIXTURE=1 "$RUNNER_TEMP/distribution.test"
       - name: Run the composite Action with release fixtures
         uses: ./
         with:

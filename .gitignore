@@ -20,6 +20,5 @@
 # Go workspace file
 go.work
 
-# Local release builds and Python test cache
+# Local release builds
 /release/
-__pycache__/

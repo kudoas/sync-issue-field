@@ -75,7 +75,7 @@ To build the release assets locally:
 
 ```bash
 bash scripts/build-release.sh ./release
-RELEASE_ASSET_DIR="$PWD/release" python3 -m unittest discover -s tests -v
+RELEASE_ASSET_DIR="$PWD/release" go test ./tests -count=1 -v
 ```
 
 ### Release Process
