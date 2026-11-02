@@ -1,0 +1,72 @@
+name: Verify published RC
+
+on:
+  push:
+    branches: [test/verify-v0.2.0-rc.1]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        relation: [sub-issue, checklist]
+        reference: [tag, sha]
+    env:
+      LIVE_RELEASE_TEST: '1'
+      LIVE_RELATION: ${{ matrix.relation }}
+      LIVE_REFERENCE: ${{ matrix.reference }}
+      LIVE_STATE: ${{ runner.temp }}/live-fixture.json
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version-file: go.mod
+      - name: Compile Go verification harness
+        run: go test -c -o "$RUNNER_TEMP/live.test" ./tests
+      - name: Create isolated test Issues
+        id: fixture
+        run: '"$RUNNER_TEMP/live.test" -test.run "^TestLiveIssueSync$" -test.v'
+        env:
+          LIVE_PHASE: setup
+      - name: Prevent Go builds during Action consumption
+        run: |
+          mkdir "$RUNNER_TEMP/no-go-build"
+          printf '#!/bin/sh\necho "Unexpected Go build" >&2\nexit 99\n' > "$RUNNER_TEMP/no-go-build/go"
+          chmod +x "$RUNNER_TEMP/no-go-build/go"
+          echo "$RUNNER_TEMP/no-go-build" >> "$GITHUB_PATH"
+      - name: Run published RC by version tag
+        if: matrix.reference == 'tag'
+        uses: kudoas/sync-issue-field@v0.2.0-rc.1
+        with:
+          token: ${{ github.token }}
+          issue: ${{ steps.fixture.outputs.child }}
+      - name: Run published RC by exact release SHA
+        if: matrix.reference == 'sha'
+        uses: kudoas/sync-issue-field@000a2184148787c591966b84a2232a9ae6dea7e0 # v0.2.0-rc.1
+        with:
+          token: ${{ github.token }}
+          issue: ${{ steps.fixture.outputs.child }}
+      - name: Read back and assert synchronized fields
+        if: always() && steps.fixture.outcome == 'success'
+        run: '"$RUNNER_TEMP/live.test" -test.run "^TestLiveIssueSync$" -test.v'
+        env:
+          LIVE_PHASE: verify
+      - name: Close test Issues and remove temporary resources
+        if: always()
+        run: '"$RUNNER_TEMP/live.test" -test.run "^TestLiveIssueSync$" -test.v'
+        env:
+          LIVE_PHASE: cleanup
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: live-${{ matrix.relation }}-${{ matrix.reference }}
+          path: ${{ runner.temp }}/live-*.json
+          if-no-files-found: ignore
