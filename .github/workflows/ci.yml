@@ -50,6 +50,12 @@ jobs:
           issue: '133'
       - name: Verify that the composite Action executed the downloaded asset
         run: test "$(cat "$FIXTURE_RESULT")" = executed
+      - name: Remove fixture commands before Action cleanup
+        if: always()
+        run: |
+          for fixture_command in git curl gh go; do
+            rm -f "$RUNNER_TEMP/composite-fixture/bin/$fixture_command"
+          done
 
   ci:
     runs-on: ubuntu-latest
