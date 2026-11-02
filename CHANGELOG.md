@@ -17,6 +17,28 @@ The changes below were previously recorded as 0.2.0, but no 0.2.0 tag or GitHub 
 * update release workflow to build and commit binary after release-please step ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
 * update release workflow to build and commit binary after release… ([#72](https://github.com/kudoas/sync-issue-field/issues/72)) ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
 
+## [0.2.0-rc.1](https://github.com/kudoas/sync-issue-field/compare/v0.1.3...v0.2.0-rc.1) (2026-11-02)
+
+
+### Features
+
+* Add check for changes before creating pull request with binary ([#82](https://github.com/kudoas/sync-issue-field/issues/82)) ([7505e7b](https://github.com/kudoas/sync-issue-field/commit/7505e7b75048d9f333263efc982507920b0ade4f))
+* Add environment variables for GitHub Actions inputs in action.yml ([597b298](https://github.com/kudoas/sync-issue-field/commit/597b2984f05699e8dcc4ac74db82e2b1cd9c3d54))
+* Add GitHub Actions workflow to build binary and create PR ([0dd8cae](https://github.com/kudoas/sync-issue-field/commit/0dd8caeb556749470053a5d9febbf9b537abd502))
+* Add GitHub Actions workflow to sync issue fields and update README ([2bc8414](https://github.com/kudoas/sync-issue-field/commit/2bc8414444a6d3cc73fc04273b34d3dcb7fd1e05))
+* GitHub Releasesからビルド済みバイナリを配布する ([#142](https://github.com/kudoas/sync-issue-field/issues/142)) ([cfa719d](https://github.com/kudoas/sync-issue-field/commit/cfa719deb0f474e07e4b172e2334b01d1108b750))
+* Optimize build process and update documentation ([#70](https://github.com/kudoas/sync-issue-field/issues/70)) ([b513e9b](https://github.com/kudoas/sync-issue-field/commit/b513e9be99a22a87c0f1148eb6dd8d411f4c5fa8))
+* Update environment variable names in action.yml and env.go for consistency ([a1df13e](https://github.com/kudoas/sync-issue-field/commit/a1df13e88f47ae3e19e760a0e9c72232070b60ec))
+* Upgrade Go version to 1.23 and refactor GitHub client interface ([#90](https://github.com/kudoas/sync-issue-field/issues/90)) ([28dcc29](https://github.com/kudoas/sync-issue-field/commit/28dcc2964dba00788e2ef67a9478c966851f2b74))
+
+
+### Bug Fixes
+
+* **deps:** update module golang.org/x/oauth2 to v0.29.0 ([#62](https://github.com/kudoas/sync-issue-field/issues/62)) ([cb95141](https://github.com/kudoas/sync-issue-field/commit/cb9514140e7c1753658ddfb138654ab61178077e))
+* **deps:** update module golang.org/x/oauth2 to v0.30.0 ([#111](https://github.com/kudoas/sync-issue-field/issues/111)) ([52889fd](https://github.com/kudoas/sync-issue-field/commit/52889fdccc2d99fb9d8653e73e3c969f8ee913ca))
+* update release workflow to build and commit binary after release-please step ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
+* update release workflow to build and commit binary after release… ([#72](https://github.com/kudoas/sync-issue-field/issues/72)) ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
+
 ## [0.1.3](https://github.com/kudoas/sync-issue-field/compare/v0.1.2...v0.1.3) (2025-01-07)
 
 
