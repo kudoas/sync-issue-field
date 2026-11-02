@@ -43,6 +43,7 @@ selection="$(printf '%s\n' "$refs" | awk -v ref="$ref" -v pattern="^refs/tags/$v
 # Several release tags can point to the same commit; choose one deterministically.
 read -r tag source_commit <<< "${selection%%$'\n'*}"
 [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]] || fail 'Invalid release source commit.'
+echo "Downloading $tag ($source_commit) for Linux $arch."
 
 work_dir="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/sync-issue-field.XXXXXX")"
 trap 'rm -rf "$work_dir"' EXIT
@@ -66,4 +67,5 @@ done
   || fail 'The release binary does not match the action source commit.'
 
 chmod +x "$work_dir/$binary"
+echo 'Release checksum and source commit verified.'
 "$work_dir/$binary"

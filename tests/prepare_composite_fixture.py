@@ -18,9 +18,9 @@ try:
     for arch in ("amd64", "arm64"):
         (fixture.assets / f"sync-issue-field_linux_{arch}").write_text(
             '#!/bin/sh\nset -eu\n'
-            'test "$GITHUB_REPOSITORY" = "example/consumer"\n'
-            'test "$GITHUB_ISSUE" = "133"\n'
-            'test "$GITHUB_TOKEN" = "fixture-token"\n'
+            'test "$GITHUB_REPOSITORY" = "example/consumer" || { echo "repository input mismatch" >&2; exit 1; }\n'
+            'test "$GITHUB_ISSUE" = "133" || { echo "issue input mismatch" >&2; exit 1; }\n'
+            'test "$GITHUB_TOKEN" = "fixture-token" || { echo "token input mismatch" >&2; exit 1; }\n'
             'echo executed > "$FIXTURE_RESULT"\n'
         )
     fixture.checksums()
