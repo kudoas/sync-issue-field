@@ -69,6 +69,8 @@ The `token` is required for the action to interact with the GitHub API.
 
 ### How to Build
 
+Development builds require Go 1.26 or newer; `go.mod` recommends Go 1.27.3. The Docker builder uses the same recommended toolchain. Users of the prebuilt GitHub Action do not need Go installed.
+
 To build the Go binary locally, run the following command:
 
 ```bash
