@@ -2,26 +2,40 @@ name: CI
 on: [pull_request, workflow_dispatch]
 
 jobs:
+  release-please-runtime:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check release-please startup without publishing or opening PRs
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ github.token }}
+          skip-github-release: true
+          skip-github-pull-request: true
+
   distribution:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+          cache-dependency-path: go.sum
       - name: Build release assets
         run: bash scripts/build-release.sh "$RUNNER_TEMP/release"
       - name: Test the packaged binaries and launcher
         run: go test ./tests -count=1 -v
         env:
           RELEASE_ASSET_DIR: ${{ runner.temp }}/release
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-binaries
+          archive: true
           path: ${{ runner.temp }}/release/
           if-no-files-found: error
       - name: Stage an offline release for the composite Action
@@ -36,18 +50,25 @@ jobs:
           issue: '133'
       - name: Verify that the composite Action executed the downloaded asset
         run: test "$(cat "$FIXTURE_RESULT")" = executed
+      - name: Remove fixture commands before Action cleanup
+        if: always()
+        run: |
+          for fixture_command in git curl gh go; do
+            rm -f "$RUNNER_TEMP/composite-fixture/bin/$fixture_command"
+          done
 
   ci:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+          cache-dependency-path: go.sum
       - run: CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
       - name: Go tests (including HTTP integration fixtures)
         run: go test ./... -count=1

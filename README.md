@@ -117,3 +117,5 @@ To verify the first real release after merging, check that the four assets are p
 ## License
 
 Refer to the [LICENSE](LICENSE) file.
+
+Repository development and release workflows use Node 24 based Actions and require Actions Runner 2.327.1 or newer. Authenticated Git operations from Docker container actions require Runner 2.329.0 or newer with checkout v7; these workflows do not perform such operations. This requirement concerns the repository workflows; the published composite Action uses Bash.
