@@ -24,7 +24,7 @@ type graphQLRequest struct {
 
 // Use the real GraphQL client and HTTP request/response handling without a
 // network connection, credentials, or writes to a shared GitHub Issue.
-func fixtureClient(t *testing.T, queryPart, response string, check func(graphQLRequest), status ...int) GithubClient {
+func fixtureClient(t *testing.T, queryPart, response string, check func(graphQLRequest), status ...int) GitHubClient {
 	t.Helper()
 	client := &http.Client{Transport: fixtureTransport(func(r *http.Request) (*http.Response, error) {
 		t.Helper()
@@ -73,13 +73,43 @@ func TestIssueQueriesOverHTTP(t *testing.T) {
 			t.Fatalf("ID = %v, error = %v", id, err)
 		}
 	})
-	t.Run("tracked issue IDs", func(t *testing.T) {
-		client := fixtureClient(t, "trackedInIssues(first: 5)", `{"data":{"repository":{"issue":{"id":"child","trackedInIssues":{"nodes":[{"id":"parent"}]}}}}}`, check)
-		ids, err := client.GetTrackedIssueNodeIDs(query)
-		if err != nil || !reflect.DeepEqual(ids, []githubv4.ID{"parent"}) {
-			t.Fatalf("IDs = %v, error = %v", ids, err)
-		}
-	})
+}
+
+func TestParentSelectionOverHTTP(t *testing.T) {
+	cases := []struct {
+		name, parent, tracked string
+		want                  githubv4.ID
+		wantError             bool
+	}{
+		{"Sub-issue without tracking", `{"id":"native"}`, `[]`, "native", false},
+		{"Sub-issue takes priority over tracking", `{"id":"native"}`, `[{"id":"legacy1"},{"id":"legacy2"}]`, "native", false},
+		{"unique checklist fallback", `null`, `[{"id":"legacy"}]`, "legacy", false},
+		{"no parent", `null`, `[]`, nil, false},
+		{"ambiguous checklist fallback", `null`, `[{"id":"legacy1"},{"id":"legacy2"}]`, nil, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			response := `{"data":{"repository":{"issue":{"parent":` + tc.parent + `,"trackedInIssues":{"nodes":` + tc.tracked + `}}}}}`
+			client := fixtureClient(t, "parent{id}", response, func(request graphQLRequest) {
+				if !strings.Contains(request.Query, "trackedInIssues(first: 2)") {
+					t.Errorf("missing bounded compatibility query: %s", request.Query)
+				}
+				for name, want := range map[string]string{"repositoryOwner": `"example"`, "repositoryName": `"repository"`, "issueNumber": "42"} {
+					if string(request.Variables[name]) != want {
+						t.Errorf("%s = %s, want %s", name, request.Variables[name], want)
+					}
+				}
+			})
+			id, err := client.GetParentIssueNodeID(&QueryRequest{RepositoryOwner: "example", RepositoryName: "repository", IssueNumber: 42})
+			if tc.wantError {
+				if err == nil || !strings.Contains(err.Error(), "multiple tracking issues") {
+					t.Fatalf("expected ambiguous parent error, got %v", err)
+				}
+			} else if err != nil || id != tc.want {
+				t.Fatalf("parent = %v, error = %v, want %v", id, err, tc.want)
+			}
+		})
+	}
 }
 
 func TestIssueFieldsOverHTTP(t *testing.T) {
@@ -116,13 +146,13 @@ func TestMutationsOverHTTP(t *testing.T) {
 	milestone := githubv4.ID("milestone")
 	cases := []struct {
 		name, query, response, input string
-		mutate                       func(GithubClient) error
+		mutate                       func(GitHubClient) error
 	}{
 		{
 			name: "issue", query: "updateIssue(input: $input)",
 			response: `{"data":{"updateIssue":{"issue":{"id":"child"}}}}`,
 			input:    `{"id":"child","assigneeIds":["user"],"labelIds":["label"],"milestoneId":"milestone"}`,
-			mutate: func(client GithubClient) error {
+			mutate: func(client GitHubClient) error {
 				return client.MutateIssue(githubv4.UpdateIssueInput{ID: "child", AssigneeIDs: &assignees, LabelIDs: &labels, MilestoneID: &milestone})
 			},
 		},
@@ -130,7 +160,7 @@ func TestMutationsOverHTTP(t *testing.T) {
 			name: "project", query: "addProjectV2ItemById(input: $input)",
 			response: `{"data":{"addProjectV2ItemById":{"item":{"id":"item"}}}}`,
 			input:    `{"projectId":"project","contentId":"child"}`,
-			mutate: func(client GithubClient) error {
+			mutate: func(client GitHubClient) error {
 				return client.MutateProject(githubv4.AddProjectV2ItemByIdInput{ProjectID: "project", ContentID: "child"})
 			},
 		},
@@ -157,12 +187,12 @@ func TestMutationsOverHTTP(t *testing.T) {
 }
 
 func TestAPIErrorsAreReturned(t *testing.T) {
-	calls := map[string]func(GithubClient) error{
-		"issue ID":     func(client GithubClient) error { _, err := client.GetIssueNodeID(&QueryRequest{}); return err },
-		"tracked IDs":  func(client GithubClient) error { _, err := client.GetTrackedIssueNodeIDs(&QueryRequest{}); return err },
-		"fields":       func(client GithubClient) error { _, err := client.GetIssueFields("parent"); return err },
-		"update issue": func(client GithubClient) error { return client.MutateIssue(githubv4.UpdateIssueInput{ID: "child"}) },
-		"add project": func(client GithubClient) error {
+	calls := map[string]func(GitHubClient) error{
+		"issue ID":     func(client GitHubClient) error { _, err := client.GetIssueNodeID(&QueryRequest{}); return err },
+		"parent ID":    func(client GitHubClient) error { _, err := client.GetParentIssueNodeID(&QueryRequest{}); return err },
+		"fields":       func(client GitHubClient) error { _, err := client.GetIssueFields("parent"); return err },
+		"update issue": func(client GitHubClient) error { return client.MutateIssue(githubv4.UpdateIssueInput{ID: "child"}) },
+		"add project": func(client GitHubClient) error {
 			return client.MutateProject(githubv4.AddProjectV2ItemByIdInput{ProjectID: "project", ContentID: "child"})
 		},
 	}

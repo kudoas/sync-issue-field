@@ -70,19 +70,19 @@ func (mr *MockGitHubClientMockRecorder) GetIssueNodeID(q any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueNodeID", reflect.TypeOf((*MockGitHubClient)(nil).GetIssueNodeID), q)
 }
 
-// GetTrackedIssueNodeIDs mocks base method.
-func (m *MockGitHubClient) GetTrackedIssueNodeIDs(q *QueryRequest) ([]githubv4.ID, error) {
+// GetParentIssueNodeID mocks base method.
+func (m *MockGitHubClient) GetParentIssueNodeID(q *QueryRequest) (githubv4.ID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTrackedIssueNodeIDs", q)
-	ret0, _ := ret[0].([]githubv4.ID)
+	ret := m.ctrl.Call(m, "GetParentIssueNodeID", q)
+	ret0, _ := ret[0].(githubv4.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTrackedIssueNodeIDs indicates an expected call of GetTrackedIssueNodeIDs.
-func (mr *MockGitHubClientMockRecorder) GetTrackedIssueNodeIDs(q any) *gomock.Call {
+// GetParentIssueNodeID indicates an expected call of GetParentIssueNodeID.
+func (mr *MockGitHubClientMockRecorder) GetParentIssueNodeID(q any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrackedIssueNodeIDs", reflect.TypeOf((*MockGitHubClient)(nil).GetTrackedIssueNodeIDs), q)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParentIssueNodeID", reflect.TypeOf((*MockGitHubClient)(nil).GetParentIssueNodeID), q)
 }
 
 // MutateIssue mocks base method.

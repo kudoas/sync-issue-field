@@ -2,25 +2,18 @@ package github
 
 import (
 	"context"
+	"errors"
 
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
-
-type GithubClient interface {
-	GetTrackedIssueNodeIDs(q *QueryRequest) ([]githubv4.ID, error)
-	GetIssueNodeID(q *QueryRequest) (githubv4.ID, error)
-	GetIssueFields(issueNodeID githubv4.ID) (*IssueFields, error)
-	MutateIssue(input githubv4.UpdateIssueInput) error
-	MutateProject(input githubv4.AddProjectV2ItemByIdInput) error
-}
 
 type githubClient struct {
 	client  *githubv4.Client
 	context context.Context
 }
 
-func NewGithubClient(ctx context.Context, token string) GithubClient {
+func NewGithubClient(ctx context.Context, token string) GitHubClient {
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -32,16 +25,18 @@ func NewGithubClient(ctx context.Context, token string) GithubClient {
 	}
 }
 
-func (g *githubClient) GetTrackedIssueNodeIDs(q *QueryRequest) ([]githubv4.ID, error) {
+func (g *githubClient) GetParentIssueNodeID(q *QueryRequest) (githubv4.ID, error) {
 	var query struct {
 		Repository struct {
 			Issue struct {
-				ID              githubv4.ID
+				Parent struct {
+					ID githubv4.ID
+				}
 				TrackedInIssues struct {
 					Nodes []struct {
 						ID githubv4.ID
 					}
-				} `graphql:"trackedInIssues(first: 5)"`
+				} `graphql:"trackedInIssues(first: 2)"`
 			} `graphql:"issue(number: $issueNumber)"`
 		} `graphql:"repository(owner: $repositoryOwner, name: $repositoryName)"`
 	}
@@ -54,11 +49,20 @@ func (g *githubClient) GetTrackedIssueNodeIDs(q *QueryRequest) ([]githubv4.ID, e
 		return nil, err
 	}
 
-	ids := make([]githubv4.ID, 0, len(query.Repository.Issue.TrackedInIssues.Nodes))
-	for _, node := range query.Repository.Issue.TrackedInIssues.Nodes {
-		ids = append(ids, node.ID)
+	if id := query.Repository.Issue.Parent.ID; id != nil {
+		return id, nil
 	}
-	return ids, nil
+	// Preserve checklist compatibility only when the tracking parent is unique.
+	// Fetching two nodes is sufficient to detect an ambiguous fallback.
+	tracked := query.Repository.Issue.TrackedInIssues.Nodes
+	switch len(tracked) {
+	case 0:
+		return nil, nil
+	case 1:
+		return tracked[0].ID, nil
+	default:
+		return nil, errors.New("multiple tracking issues found; set an explicit Sub-issue parent")
+	}
 }
 
 func (g *githubClient) GetIssueNodeID(q *QueryRequest) (githubv4.ID, error) {
