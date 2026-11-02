@@ -17,6 +17,25 @@ The changes below were previously recorded as 0.2.0, but no 0.2.0 tag or GitHub 
 * update release workflow to build and commit binary after release-please step ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
 * update release workflow to build and commit binary after release… ([#72](https://github.com/kudoas/sync-issue-field/issues/72)) ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
 
+## [0.2.0](https://github.com/kudoas/sync-issue-field/compare/v0.2.0-rc.1...v0.2.0) (2026-11-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** Go・OAuth2・Docker の実行環境を更新 ([#163](https://github.com/kudoas/sync-issue-field/issues/163))
+
+### Bug Fixes
+
+* **deps:** update compatible dependencies and enforce three-day release age ([840bb90](https://github.com/kudoas/sync-issue-field/commit/840bb9065990e9faa7b446531aeee973adda98da))
+* **deps:** 互換更新と公開後3日間の待機ルールを適用 ([#161](https://github.com/kudoas/sync-issue-field/issues/161)) ([840bb90](https://github.com/kudoas/sync-issue-field/commit/840bb9065990e9faa7b446531aeee973adda98da))
+* prefer explicit Sub-issue parents for synchronization ([c3bee8b](https://github.com/kudoas/sync-issue-field/commit/c3bee8b9e04a6a345d357a41575b521b8f009faa))
+* Sub-issueの親からIssueフィールドを同期する ([#151](https://github.com/kudoas/sync-issue-field/issues/151)) ([c3bee8b](https://github.com/kudoas/sync-issue-field/commit/c3bee8b9e04a6a345d357a41575b521b8f009faa))
+
+
+### Build System
+
+* **deps:** Go・OAuth2・Docker の実行環境を更新 ([#163](https://github.com/kudoas/sync-issue-field/issues/163)) ([979958b](https://github.com/kudoas/sync-issue-field/commit/979958b55e0ff26639ebceabe121de12d338ac36))
+
 ## [0.2.0-rc.1](https://github.com/kudoas/sync-issue-field/compare/v0.1.3...v0.2.0-rc.1) (2026-11-02)
 
 
