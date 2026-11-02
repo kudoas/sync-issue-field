@@ -17,6 +17,7 @@ func publishFixture(t *testing.T) *fixture {
 	}
 	f.env["FIXTURE_REMOTE"] = remote
 	f.env["FIXTURE_UPLOADS"] = filepath.Join(f.dir, "uploads")
+	f.env["FIXTURE_PUBLICATION"] = filepath.Join(f.dir, "publication")
 	f.env["GITHUB_REPOSITORY"] = "example/action"
 	return f
 }
@@ -79,5 +80,60 @@ func TestConflictingAssetFailsBeforeAnyUpload(t *testing.T) {
 	}
 	if _, err := os.Stat(f.env["FIXTURE_UPLOADS"]); !os.IsNotExist(err) {
 		t.Fatalf("uploaded before checking conflicts: %v", err)
+	}
+	if _, err := os.Stat(f.env["FIXTURE_PUBLICATION"]); !os.IsNotExist(err) {
+		t.Fatalf("published despite conflicting asset: %v", err)
+	}
+}
+
+func TestPublicationFlags(t *testing.T) {
+	for _, tc := range []struct {
+		tag, prerelease, latest string
+	}{
+		{"v0.2.0-rc.1", "true", "false"},
+		{"v0.2.0", "false", "true"},
+	} {
+		t.Run(tc.tag, func(t *testing.T) {
+			f := publishFixture(t)
+			r := f.run(t, "publish-release.sh", nil, tc.tag, f.assets)
+			requireCode(t, r, 0)
+			publication := read(t, f.env["FIXTURE_PUBLICATION"])
+			for _, want := range []string{tc.tag, "--draft=false", "--prerelease=" + tc.prerelease, "--latest=" + tc.latest} {
+				if !strings.Contains(publication, want) {
+					t.Errorf("publication %q does not contain %q", publication, want)
+				}
+			}
+		})
+	}
+}
+
+func TestFailedUploadKeepsReleaseUnpublishedAndCanRetry(t *testing.T) {
+	f := publishFixture(t)
+	f.env["FIXTURE_FAIL_UPLOAD"] = "sync-issue-field_linux_arm64"
+	if r := f.publish(t); r.code == 0 {
+		t.Fatal("expected upload failure")
+	}
+	if _, err := os.Stat(f.env["FIXTURE_PUBLICATION"]); !os.IsNotExist(err) {
+		t.Fatalf("published despite upload failure: %v", err)
+	}
+	delete(f.env, "FIXTURE_FAIL_UPLOAD")
+	requireCode(t, f.publish(t), 0)
+	if _, err := os.Stat(f.env["FIXTURE_PUBLICATION"]); err != nil {
+		t.Fatal("retry did not publish the completed release:", err)
+	}
+}
+
+func TestMissingAssetPreventsPublication(t *testing.T) {
+	f := publishFixture(t)
+	if err := os.Remove(filepath.Join(f.assets, "sync-issue-field_linux_arm64")); err != nil {
+		t.Fatal(err)
+	}
+	if r := f.publish(t); r.code == 0 {
+		t.Fatal("incomplete asset set was accepted")
+	}
+	for _, path := range []string{f.env["FIXTURE_UPLOADS"], f.env["FIXTURE_PUBLICATION"]} {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Fatalf("incomplete assets caused a remote mutation: %s: %v", path, err)
+		}
 	}
 }

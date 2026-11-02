@@ -26,6 +26,18 @@ func TestCommitPinResolvesAnnotatedReleaseTag(t *testing.T) {
 	requireCode(t, r, 0)
 }
 
+func TestPrereleaseReferences(t *testing.T) {
+	tag := "v0.2.0-rc.1"
+	for _, ref := range []string{tag, fixtureSHA} {
+		t.Run(ref, func(t *testing.T) {
+			requireCode(t, newFixture(t).launch(t, map[string]string{
+				"ACTION_REF": ref, "FIXTURE_TAG": tag,
+				"FIXTURE_REFS": fixtureSHA + "\trefs/tags/" + tag,
+			}), 0)
+		})
+	}
+}
+
 func TestVersionTagResolvesAnnotatedTagToCommit(t *testing.T) {
 	refs := strings.Repeat("b", 40) + "\trefs/tags/" + fixtureTag + "\n" + fixtureSHA + "\trefs/tags/" + fixtureTag + "^{}"
 	requireCode(t, newFixture(t).launch(t, map[string]string{"FIXTURE_REFS": refs}), 0)

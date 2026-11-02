@@ -1,6 +1,8 @@
 # Changelog
 
-## [0.2.0](https://github.com/kudoas/sync-issue-field/compare/v0.1.3...v0.2.0) (2025-05-03)
+## Unreleased
+
+The changes below were previously recorded as 0.2.0, but no 0.2.0 tag or GitHub Release was published.
 
 
 ### Features

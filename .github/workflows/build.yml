@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       source-sha:
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -22,11 +22,14 @@ jobs:
       - name: Validate release tag
         env:
           RELEASE_TAG: ${{ inputs.tag }}
+          SOURCE_SHA: ${{ inputs.source-sha }}
         run: |
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
-          ref: ${{ inputs.tag }}
+          # Draft releases may not have a Git tag yet.
+          ref: ${{ inputs.source-sha }}
           persist-credentials: false
       - name: Check release source
         env:
@@ -34,10 +37,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          if [[ -n "$EXPECTED_SHA" ]]; then
-            test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          target="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish)"
+          test "$target" = "$EXPECTED_SHA"
+          tagged="$(git ls-remote --tags "https://github.com/$GITHUB_REPOSITORY.git" "refs/tags/$RELEASE_TAG" "refs/tags/$RELEASE_TAG^{}" | awk 'NR == 1 { sha=$1 } /\^\{\}$/ { sha=$1 } END { print sha }')"
+          if [[ -n "$tagged" ]]; then
+            test "$tagged" = "$EXPECTED_SHA"
           fi
-          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version-file: go.mod
@@ -48,7 +54,7 @@ jobs:
         run: go test ./tests -count=1 -v
         env:
           RELEASE_ASSET_DIR: ${{ runner.temp }}/release
-      - name: Upload release assets
+      - name: Upload assets and publish the complete release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}

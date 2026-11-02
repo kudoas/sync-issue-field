@@ -88,6 +88,9 @@ func runHelper(name string, args []string) int {
 			}
 			source := args[len(args)-1]
 			name := filepath.Base(source)
+			if name == os.Getenv("FIXTURE_FAIL_UPLOAD") {
+				return 2
+			}
 			if _, err := os.Stat(filepath.Join(remote, name)); !os.IsNotExist(err) {
 				return 2
 			}
@@ -101,6 +104,17 @@ func runHelper(name string, args []string) int {
 			_, writeErr := fmt.Fprintln(log, name)
 			closeErr := log.Close()
 			if writeErr != nil || closeErr != nil {
+				return 2
+			}
+		case "edit":
+			// Publishing before every asset exists is a failure, even if a later
+			// upload would otherwise fill the missing files.
+			for _, name := range []string{"SHA256SUMS", "source-commit.txt", "sync-issue-field_linux_amd64", "sync-issue-field_linux_arm64"} {
+				if _, err := os.Stat(filepath.Join(remote, name)); err != nil {
+					return 2
+				}
+			}
+			if err := os.WriteFile(os.Getenv("FIXTURE_PUBLICATION"), []byte(strings.Join(args, "\n")), 0600); err != nil {
 				return 2
 			}
 		default:
