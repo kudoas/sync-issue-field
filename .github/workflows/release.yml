@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release version tag to publish missing assets for
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -11,9 +17,12 @@ permissions:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      sha: ${{ steps.release.outputs.sha }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,3 +33,15 @@ jobs:
         with:
           release-type: go
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: release-please
+    if: >-
+      ${{ !cancelled() && !failure() &&
+          (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
+    uses: ./.github/workflows/build.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+      source-sha: ${{ needs.release-please.outputs.sha }}
+    permissions:
+      contents: write
