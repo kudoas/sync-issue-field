@@ -24,6 +24,6 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
         ACTION_REPOSITORY: ${{ github.action_repository || github.repository }}
         ACTION_REF: ${{ github.action_ref }}
-        GITHUB_TOKEN: ${{ inputs.token }}
-        GITHUB_REPOSITORY: ${{ inputs.repository }}
-        GITHUB_ISSUE: ${{ inputs.issue }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_ISSUE: ${{ inputs.issue }}

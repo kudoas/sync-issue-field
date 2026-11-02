@@ -61,9 +61,12 @@ shutil.copyfile(source, args[args.index('--output') + 1])
             "ACTION_REPOSITORY": "kudoas/sync-issue-field",
             "ACTION_REF": TAG,
             "ACTION_PATH": str(ROOT),
-            "GITHUB_TOKEN": "fixture-token",
-            "GITHUB_REPOSITORY": "example/consumer",
-            "GITHUB_ISSUE": "42",
+            "INPUT_TOKEN": "fixture-token",
+            "INPUT_REPOSITORY": "example/consumer",
+            "INPUT_ISSUE": "42",
+            "GITHUB_TOKEN": "caller-token",
+            "GITHUB_REPOSITORY": "original/caller",
+            "GITHUB_ISSUE": "999",
             "FIXTURE_REFS": f"{SHA}\trefs/tags/{TAG}",
             "FIXTURE_ASSETS": str(self.assets),
             "FIXTURE_TAG": TAG,
@@ -180,7 +183,7 @@ shutil.copyfile(source, args[args.index('--output') + 1])
             arch = "ARM64" if platform.machine() in ("aarch64", "arm64") else "X64"
             result = self.launch(
                 ACTION_REF=commit, FIXTURE_REFS=f"{commit}\trefs/tags/{TAG}",
-                RUNNER_ARCH=arch, GITHUB_ISSUE="not-an-issue-number",
+                RUNNER_ARCH=arch, INPUT_ISSUE="not-an-issue-number",
             )
             self.assertEqual(result.returncode, 1, result.stderr)
             self.assertIn("Issue number can't parse to int", result.stderr)

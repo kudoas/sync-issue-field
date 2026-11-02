@@ -68,4 +68,9 @@ done
 
 chmod +x "$work_dir/$binary"
 echo 'Release checksum and source commit verified.'
-"$work_dir/$binary"
+# GitHub's GITHUB_* defaults take precedence over composite step env values.
+# Map inputs at process launch so repository overrides reach the executable.
+GITHUB_TOKEN="${INPUT_TOKEN:-}" \
+GITHUB_REPOSITORY="${INPUT_REPOSITORY:-}" \
+GITHUB_ISSUE="${INPUT_ISSUE:-}" \
+  "$work_dir/$binary"
