@@ -91,7 +91,7 @@ The publishing job checks out the release tag, verifies the source SHA, runs Go 
 | `source-commit.txt` | Full source commit SHA |
 | `SHA256SUMS` | Checksums for the three files above |
 
-No binary commits or new signing secrets are required. PR CI builds the same asset format, tests corruption/missing assets/source mismatches, runs the real packaged binary on Linux with invalid input before any GitHub API call, and invokes the composite Action with offline release fixtures. Fixture tests do not publish a release or change Issues.
+No binary commits or new signing secrets are required. PR CI builds the same asset format, tests corruption/missing assets/source mismatches, runs the real packaged binary on Linux with invalid input before any GitHub API call, and invokes the composite Action with offline release fixtures. It also runs `go test ./...` and `go vet ./...` with read-only repository permissions. The GitHub client's HTTP fixture tests exercise query variables, response decoding, mutation inputs, GraphQL errors and HTTP 401 responses without a PAT or shared test Issue. These tests do not publish a release or change Issues; they do not establish compatibility with GitHub's live schema or authentication.
 
 A release is ready for consumers only after the publishing job succeeds. For a failed or partial upload, run `release.yml` manually with the existing release tag. Only tags that include these scripts can be published this way. Existing identical assets are kept and missing assets are uploaded; differing existing assets cause a failure. Never replace a published binary in place: fix the source and release a new version.
 
