@@ -85,6 +85,14 @@ func (g *githubClient) GetIssueNodeID(q *QueryRequest) (githubv4.ID, error) {
 	return query.Repository.Issue.ID, nil
 }
 
+type labelPage struct {
+	Nodes    []struct{ ID githubv4.ID }
+	PageInfo struct {
+		EndCursor   githubv4.String
+		HasNextPage bool
+	}
+}
+
 func (g *githubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) {
 	var query struct {
 		Node struct {
@@ -93,12 +101,8 @@ func (g *githubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) 
 					Nodes []struct {
 						ID githubv4.ID
 					}
-				} `graphql:"assignees(first: 5)"`
-				Labels struct {
-					Nodes []struct {
-						ID githubv4.ID
-					}
-				} `graphql:"labels(first: 20)"`
+				} `graphql:"assignees(first: 10)"` // GitHub supports at most 10 assignees per issue.
+				Labels    labelPage `graphql:"labels(first: 100)"`
 				Milestone struct {
 					ID githubv4.ID
 				} `graphql:"milestone"`
@@ -136,8 +140,34 @@ func (g *githubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) 
 	}
 
 	labelIDs := make([]githubv4.ID, 0, len(query.Node.Issue.Labels.Nodes))
-	for _, node := range query.Node.Issue.Labels.Nodes {
-		labelIDs = append(labelIDs, node.ID)
+	page := query.Node.Issue.Labels
+	seenCursors := make(map[githubv4.String]bool)
+	for {
+		for _, node := range page.Nodes {
+			labelIDs = append(labelIDs, node.ID)
+		}
+		if !page.PageInfo.HasNextPage {
+			break
+		}
+		cursor := page.PageInfo.EndCursor
+		if cursor == "" || seenCursors[cursor] {
+			return nil, errors.New("labels pagination did not advance")
+		}
+		seenCursors[cursor] = true
+		var next struct {
+			Node struct {
+				Issue struct {
+					Labels labelPage `graphql:"labels(first: 100, after: $cursor)"`
+				} `graphql:"... on Issue"`
+			} `graphql:"node(id: $nodeID)"`
+		}
+		if err := g.client.Query(g.context, &next, map[string]interface{}{
+			"nodeID": nodeID,
+			"cursor": cursor,
+		}); err != nil {
+			return nil, err
+		}
+		page = next.Node.Issue.Labels
 	}
 
 	projectIDs := make([]githubv4.ID, 0, len(query.Node.Issue.ProjectItems.Nodes))

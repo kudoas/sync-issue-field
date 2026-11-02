@@ -7,6 +7,8 @@ This GitHub Action is used to synchronize specific fields (e.g., Assigned, Label
 
 The parent is the issue's explicit GitHub Sub-issue parent. For compatibility, when no explicit parent exists, a single issue tracking the child in a Markdown checklist is also accepted. An explicit parent takes priority over checklist references. Multiple checklist tracking issues without an explicit parent are ambiguous and cause an error rather than selecting one arbitrarily. If neither relation exists, synchronization is skipped.
 
+Assignees and labels on the child are replaced with the parent's complete sets, including clearing them when the parent has none. Child-only assignees and labels are removed. All label pages are fetched before any update; a failed page aborts synchronization without updating the child. Assignees are fetched up to [GitHub's limit of 10 per issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/assigning-issues-and-pull-requests-to-other-github-users#about-issue-and-pull-request-assignees).
+
 The opt-in `Verify parent synchronization` workflow checks both parent relations using isolated test Issues and reads back assignees, labels and milestone. It closes those Issues and deletes its temporary labels/milestones afterward. It requires `issues: write`; normal PR CI remains read-only and skips live tests.
 
 ## Usage
