@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/kudoas/sync-issue-field/infrastructure/github"
 	"github.com/shurcooL/githubv4"
@@ -12,13 +11,11 @@ import (
 
 type SyncIssueFieldsUseCase struct {
 	githubClient github.GitHubClient
-	exiter       func(code int)
 }
 
 func NewSyncIssueFieldsUseCase(githubClient github.GitHubClient) *SyncIssueFieldsUseCase {
 	return &SyncIssueFieldsUseCase{
 		githubClient: githubClient,
-		exiter:       os.Exit,
 	}
 }
 
@@ -33,16 +30,14 @@ func (uc *SyncIssueFieldsUseCase) Execute(ctx context.Context, repoOwner, repoNa
 		return fmt.Errorf("failed to get target issue node id: %w", err)
 	}
 
-	trackedIssueNodeIDs, err := uc.githubClient.GetTrackedIssueNodeIDs(&q)
+	parentID, err := uc.githubClient.GetParentIssueNodeID(&q)
 	if err != nil {
-		return fmt.Errorf("failed to get tracked issue node ids: %w", err)
+		return fmt.Errorf("failed to get parent issue node id: %w", err)
 	}
-	if len(trackedIssueNodeIDs) == 0 {
-		log.Println("No tracked issues found. Exiting.")
-		uc.exiter(0)
+	if parentID == nil {
+		log.Println("No parent issue found. Skipping synchronization.")
 		return nil
 	}
-	parentID := trackedIssueNodeIDs[0]
 
 	parentIssueFields, err := uc.githubClient.GetIssueFields(parentID)
 	if err != nil {

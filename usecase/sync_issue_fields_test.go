@@ -35,7 +35,7 @@ func TestSyncIssueFieldsUseCase_Execute(t *testing.T) {
 		parentID := githubv4.ID("parentID")
 
 		mockClient.EXPECT().GetIssueNodeID(queryReq).Return(targetNodeID, nil)
-		mockClient.EXPECT().GetTrackedIssueNodeIDs(queryReq).Return([]githubv4.ID{parentID}, nil)
+		mockClient.EXPECT().GetParentIssueNodeID(queryReq).Return(parentID, nil)
 
 		parentFields := &github.IssueFields{
 			AssigneeIDs: []githubv4.ID{"assignee1", "assignee2"},
@@ -69,7 +69,7 @@ func TestSyncIssueFieldsUseCase_Execute(t *testing.T) {
 		}
 	})
 
-	t.Run("no tracked issues", func(t *testing.T) {
+	t.Run("no parent returns without mutations or process exit", func(t *testing.T) {
 		queryReq := &github.QueryRequest{
 			RepositoryOwner: repoOwner,
 			RepositoryName:  repoName,
@@ -78,32 +78,26 @@ func TestSyncIssueFieldsUseCase_Execute(t *testing.T) {
 		targetNodeID := githubv4.ID("targetNodeID")
 
 		mockClient.EXPECT().GetIssueNodeID(queryReq).Return(targetNodeID, nil)
-		mockClient.EXPECT().GetTrackedIssueNodeIDs(queryReq).Return([]githubv4.ID{}, nil) // tracked issueがないケース
-
-		exited := false
-		exitCode := 0
-		customExiter := func(code int) {
-			exited = true
-			exitCode = code
-			panic("os.Exit called")
-		}
-		useCase.exiter = customExiter
-
-		defer func() {
-			if r := recover(); r != nil {
-				if r != "os.Exit called" {
-					t.Errorf("Expected os.Exit panic, but got %v", r)
-				}
-			}
-			if !exited || exitCode != 0 {
-				t.Errorf("Expected os.Exit(0) to be called, but it was not")
-			}
-		}()
+		mockClient.EXPECT().GetParentIssueNodeID(queryReq).Return(nil, nil)
 
 		err := useCase.Execute(ctx, repoOwner, repoName, issueNumber)
 
 		if err != nil {
 			t.Errorf("Expected no error, but got %v", err)
+		}
+	})
+
+	t.Run("parent lookup error prevents mutations", func(t *testing.T) {
+		queryReq := &github.QueryRequest{
+			RepositoryOwner: repoOwner,
+			RepositoryName:  repoName,
+			IssueNumber:     issueNumber,
+		}
+		expectedErr := errors.New("ambiguous or unavailable parent")
+		mockClient.EXPECT().GetIssueNodeID(queryReq).Return(githubv4.ID("targetNodeID"), nil)
+		mockClient.EXPECT().GetParentIssueNodeID(queryReq).Return(nil, expectedErr)
+		if err := useCase.Execute(ctx, repoOwner, repoName, issueNumber); !errors.Is(err, expectedErr) {
+			t.Fatalf("expected parent lookup error, got %v", err)
 		}
 	})
 

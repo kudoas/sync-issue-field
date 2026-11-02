@@ -1,0 +1,60 @@
+name: Verify parent synchronization
+
+on:
+  push:
+    branches: [fix/sub-issue-parent]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        relation: [sub-issue, checklist]
+    env:
+      LIVE_RELEASE_TEST: '1'
+      LIVE_RELATION: ${{ matrix.relation }}
+      LIVE_REFERENCE: candidate
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version-file: go.mod
+      - name: Build the exact candidate and Go verification harness
+        run: |
+          git rev-parse HEAD
+          CGO_ENABLED=0 go build -o "$RUNNER_TEMP/candidate" ./cmd/run
+          go test -c -o "$RUNNER_TEMP/live.test" ./tests
+      - name: Create isolated test Issues
+        id: fixture
+        run: '"$RUNNER_TEMP/live.test" -test.run "^TestLiveIssueSync$" -test.v'
+        env:
+          LIVE_PHASE: setup
+      - name: Run candidate against the test child
+        run: '"$RUNNER_TEMP/candidate"'
+        env:
+          GITHUB_ISSUE: ${{ steps.fixture.outputs.child }}
+      - name: Read back and assert synchronized fields
+        if: always() && steps.fixture.outcome == 'success'
+        run: '"$RUNNER_TEMP/live.test" -test.run "^TestLiveIssueSync$" -test.v'
+        env:
+          LIVE_PHASE: verify
+      - name: Close test Issues and remove temporary resources
+        if: always()
+        run: '"$RUNNER_TEMP/live.test" -test.run "^TestLiveIssueSync$" -test.v'
+        env:
+          LIVE_PHASE: cleanup
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: parent-${{ matrix.relation }}
+          path: ${{ runner.temp }}/live-*.json
+          if-no-files-found: ignore
