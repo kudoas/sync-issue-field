@@ -9,7 +9,17 @@ The parent is the issue's explicit GitHub Sub-issue parent. For compatibility, w
 
 Assignees and labels on the child are replaced with the parent's complete sets, including clearing them when the parent has none. Child-only assignees and labels are removed. All label pages are fetched before any update; a failed page aborts synchronization without updating the child. Assignees are fetched up to [GitHub's limit of 10 per issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/assigning-issues-and-pull-requests-to-other-github-users#about-issue-and-pull-request-assignees).
 
-The opt-in `Verify parent synchronization` workflow checks both parent relations using isolated test Issues and reads back assignees, labels and milestone, including disabled milestone synchronization preserving a child-only value. It closes those Issues and deletes its temporary labels/milestones afterward. It requires `issues: write`; normal PR CI remains read-only and skips live tests.
+The opt-in `Verify parent synchronization` workflow checks both parent relations using isolated test Issues and reads back assignees, labels and milestone, including disabled milestone synchronization preserving a child-only value. It closes those Issues and deletes its temporary labels/milestones afterward. It runs only when a maintainer manually dispatches it on `main` in this repository. Only that job requests `issues: write`; no PAT secret is used.
+
+Normal CI runs on all pull requests, including forks, with `contents: read` and `LIVE_RELEASE_TEST=0`. It runs the offline Go tests, prints the live-test skip reason in the log, and records the separation in the job summary. The live-test workflow does not check out fork PR heads or use `pull_request_target`. Go's live fixture also rejects PR events, other refs/repositories and missing tokens before any API call.
+
+After merging a change that needs live verification, maintainers can run:
+
+```bash
+gh workflow run verify-parent.yml --ref main
+```
+
+The live workflow checks out the exact dispatch SHA. Dispatching it against a feature branch skips the write-enabled job; it does not validate that PR's candidate. Review PRs using the offline CI, then verify the merged main commit through the explicit live workflow.
 
 ## Usage
 

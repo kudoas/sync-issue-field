@@ -84,8 +84,8 @@ func liveFields(issue liveIssue) map[string]interface{} {
 // Opt-in live test. All mutable resources are created for this run and cleaned
 // up separately even when the Action or the readback assertion fails.
 func TestLiveIssueSync(t *testing.T) {
-	if os.Getenv("LIVE_RELEASE_TEST") != "1" {
-		t.Skip("live verification is opt-in")
+	if reason := liveTestSkipReason(); reason != "" {
+		t.Skip(reason)
 	}
 	repo := os.Getenv("GITHUB_REPOSITORY")
 	if repo != "kudoas/sync-issue-field" || os.Getenv("RUNNER_TEMP") == "" {

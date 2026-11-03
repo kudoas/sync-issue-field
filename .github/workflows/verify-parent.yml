@@ -1,17 +1,18 @@
 name: Verify parent synchronization
 
 on:
-  push:
-    branches: [fix/sub-issue-parent]
   workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   live:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'kudoas/sync-issue-field' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
