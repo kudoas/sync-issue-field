@@ -41,18 +41,18 @@ func (m *MockGitHubClient) EXPECT() *MockGitHubClientMockRecorder {
 }
 
 // GetIssueFields mocks base method.
-func (m *MockGitHubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) {
+func (m *MockGitHubClient) GetIssueFields(nodeID githubv4.ID, options SyncOptions) (*IssueFields, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIssueFields", nodeID)
+	ret := m.ctrl.Call(m, "GetIssueFields", nodeID, options)
 	ret0, _ := ret[0].(*IssueFields)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetIssueFields indicates an expected call of GetIssueFields.
-func (mr *MockGitHubClientMockRecorder) GetIssueFields(nodeID any) *gomock.Call {
+func (mr *MockGitHubClientMockRecorder) GetIssueFields(nodeID, options any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueFields", reflect.TypeOf((*MockGitHubClient)(nil).GetIssueFields), nodeID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIssueFields", reflect.TypeOf((*MockGitHubClient)(nil).GetIssueFields), nodeID, options)
 }
 
 // GetIssueNodeID mocks base method.

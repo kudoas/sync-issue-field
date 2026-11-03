@@ -11,11 +11,13 @@ import (
 
 type SyncIssueFieldsUseCase struct {
 	githubClient github.GitHubClient
+	options      github.SyncOptions
 }
 
-func NewSyncIssueFieldsUseCase(githubClient github.GitHubClient) *SyncIssueFieldsUseCase {
+func NewSyncIssueFieldsUseCase(githubClient github.GitHubClient, options github.SyncOptions) *SyncIssueFieldsUseCase {
 	return &SyncIssueFieldsUseCase{
 		githubClient: githubClient,
+		options:      options,
 	}
 }
 
@@ -39,7 +41,7 @@ func (uc *SyncIssueFieldsUseCase) Execute(ctx context.Context, repoOwner, repoNa
 		return nil
 	}
 
-	parentIssueFields, err := uc.githubClient.GetIssueFields(parentID)
+	parentIssueFields, err := uc.githubClient.GetIssueFields(parentID, uc.options)
 	if err != nil {
 		return fmt.Errorf("failed to get parent issue fields: %w", err)
 	}
@@ -50,7 +52,7 @@ func (uc *SyncIssueFieldsUseCase) Execute(ctx context.Context, repoOwner, repoNa
 		LabelIDs:    &parentIssueFields.LabelIDs,
 	}
 
-	if parentIssueFields.MilestoneID != "" {
+	if uc.options.Milestone {
 		updateInput.MilestoneID = &parentIssueFields.MilestoneID
 	}
 
@@ -58,12 +60,12 @@ func (uc *SyncIssueFieldsUseCase) Execute(ctx context.Context, repoOwner, repoNa
 		return fmt.Errorf("failed to update target issue: %w", err)
 	}
 
-	if len(parentIssueFields.ProjectIDs) > 0 {
+	if uc.options.Projects && len(parentIssueFields.ProjectIDs) > 0 {
 		if err := uc.githubClient.MutateProject(githubv4.AddProjectV2ItemByIdInput{
 			ProjectID: parentIssueFields.ProjectIDs[0],
 			ContentID: targetIssueNodeID,
 		}); err != nil {
-			return fmt.Errorf("failed to add project item: %w", err)
+			return fmt.Errorf("issue fields were updated, but failed to add project item: %w", err)
 		}
 	}
 

@@ -17,7 +17,7 @@ func main() {
 
 	ctx := context.Background()
 	githubClient := github.NewGithubClient(ctx, env.Token())
-	syncUseCase := usecase.NewSyncIssueFieldsUseCase(githubClient)
+	syncUseCase := usecase.NewSyncIssueFieldsUseCase(githubClient, github.SyncOptions{Milestone: env.SyncMilestone(), Projects: env.SyncProjects()})
 	if err := syncUseCase.Execute(ctx, env.RepoOwner(), env.RepoName(), env.IssueNumber()); err != nil {
 		log.Fatalf("failed to execute sync issue fields use case: %v", err)
 	}

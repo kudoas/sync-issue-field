@@ -7,7 +7,7 @@ import (
 type GitHubClient interface {
 	GetParentIssueNodeID(q *QueryRequest) (githubv4.ID, error)
 	GetIssueNodeID(q *QueryRequest) (githubv4.ID, error)
-	GetIssueFields(nodeID githubv4.ID) (*IssueFields, error)
+	GetIssueFields(nodeID githubv4.ID, options SyncOptions) (*IssueFields, error)
 	MutateIssue(input githubv4.UpdateIssueInput) error
 	MutateProject(input githubv4.AddProjectV2ItemByIdInput) error
 }

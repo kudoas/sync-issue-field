@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -93,7 +94,7 @@ type labelPage struct {
 	}
 }
 
-func (g *githubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) {
+func (g *githubClient) GetIssueFields(nodeID githubv4.ID, options SyncOptions) (*IssueFields, error) {
 	var query struct {
 		Node struct {
 			Issue struct {
@@ -102,29 +103,7 @@ func (g *githubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) 
 						ID githubv4.ID
 					}
 				} `graphql:"assignees(first: 10)"` // GitHub supports at most 10 assignees per issue.
-				Labels    labelPage `graphql:"labels(first: 100)"`
-				Milestone struct {
-					ID githubv4.ID
-				} `graphql:"milestone"`
-				ProjectItems struct {
-					Nodes []struct {
-						Project struct {
-							ID githubv4.ID
-						}
-						FieldValues struct {
-							Nodes []struct {
-								OnProjectV2ItemFieldSingleSelectValue struct {
-									ID       githubv4.ID
-									OptionID githubv4.ID
-								} `graphql:"... on ProjectV2ItemFieldSingleSelectValue"`
-								OnProjectV2ItemFieldDateValue struct {
-									ID   githubv4.ID
-									Date githubv4.String
-								} `graphql:"... on ProjectV2ItemFieldDateValue"`
-							}
-						} `graphql:"fieldValues(last: 10)"`
-					}
-				} `graphql:"projectItems(first: 5)"`
+				Labels labelPage `graphql:"labels(first: 100)"`
 			} `graphql:"... on Issue"`
 		} `graphql:"node(id: $nodeID)"`
 	}
@@ -170,17 +149,36 @@ func (g *githubClient) GetIssueFields(nodeID githubv4.ID) (*IssueFields, error) 
 		page = next.Node.Issue.Labels
 	}
 
-	projectIDs := make([]githubv4.ID, 0, len(query.Node.Issue.ProjectItems.Nodes))
-	for _, node := range query.Node.Issue.ProjectItems.Nodes {
-		projectIDs = append(projectIDs, node.Project.ID)
+	fields := &IssueFields{AssigneeIDs: assigneeIDs, LabelIDs: labelIDs}
+	if options.Milestone {
+		var milestone struct {
+			Node struct {
+				Issue struct{ Milestone struct{ ID githubv4.ID } } `graphql:"... on Issue"`
+			} `graphql:"node(id: $nodeID)"`
+		}
+		if err := g.client.Query(g.context, &milestone, map[string]interface{}{"nodeID": nodeID}); err != nil {
+			return nil, fmt.Errorf("failed to read parent milestone: %w", err)
+		}
+		fields.MilestoneID = milestone.Node.Issue.Milestone.ID
 	}
-
-	return &IssueFields{
-		AssigneeIDs: assigneeIDs,
-		LabelIDs:    labelIDs,
-		MilestoneID: &query.Node.Issue.Milestone.ID,
-		ProjectIDs:  projectIDs,
-	}, nil
+	if options.Projects {
+		var projects struct {
+			Node struct {
+				Issue struct {
+					ProjectItems struct {
+						Nodes []struct{ Project struct{ ID githubv4.ID } }
+					} `graphql:"projectItems(first: 5)"`
+				} `graphql:"... on Issue"`
+			} `graphql:"node(id: $nodeID)"`
+		}
+		if err := g.client.Query(g.context, &projects, map[string]interface{}{"nodeID": nodeID}); err != nil {
+			return nil, fmt.Errorf("failed to read parent Projects (sync-projects requires a Projects-capable token): %w", err)
+		}
+		for _, item := range projects.Node.Issue.ProjectItems.Nodes {
+			fields.ProjectIDs = append(fields.ProjectIDs, item.Project.ID)
+		}
+	}
+	return fields, nil
 }
 
 func (g *githubClient) MutateIssue(input githubv4.UpdateIssueInput) error {

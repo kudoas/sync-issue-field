@@ -48,6 +48,8 @@ jobs:
           token: fixture-token
           repository: example/consumer
           issue: '133'
+          sync-milestone: 'true'
+          sync-projects: 'false'
       - name: Verify that the composite Action executed the downloaded asset
         run: test "$(cat "$FIXTURE_RESULT")" = executed
       - name: Remove fixture commands before Action cleanup

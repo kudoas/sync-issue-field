@@ -14,3 +14,9 @@ type IssueFields struct {
 	MilestoneID githubv4.ID
 	ProjectIDs  []githubv4.ID
 }
+
+// SyncOptions selects the optional fields; assignees and labels are always synchronized.
+type SyncOptions struct {
+	Milestone bool
+	Projects  bool
+}

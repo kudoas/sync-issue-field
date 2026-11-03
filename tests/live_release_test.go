@@ -25,11 +25,12 @@ type liveIssue struct {
 }
 
 type liveState struct {
-	Label        string    `json:"label"`
-	Milestone    int       `json:"milestone"`
-	Parent       liveIssue `json:"parent"`
-	Child        liveIssue `json:"child"`
-	LabelCreated bool      `json:"label_created"`
+	Label          string    `json:"label"`
+	Milestone      int       `json:"milestone"`
+	ChildMilestone int       `json:"child_milestone"`
+	Parent         liveIssue `json:"parent"`
+	Child          liveIssue `json:"child"`
+	LabelCreated   bool      `json:"label_created"`
 }
 
 func liveAPI(method, path string, input, output interface{}) error {
@@ -119,7 +120,7 @@ func TestLiveIssueSync(t *testing.T) {
 	issuePath := func(number int) string { return fmt.Sprintf("/issues/%d", number) }
 	switch os.Getenv("LIVE_PHASE") {
 	case "setup":
-		state.Label = fmt.Sprintf("rc-%s-%s-%s-%s", os.Getenv("GITHUB_RUN_ID"), os.Getenv("GITHUB_RUN_ATTEMPT"), os.Getenv("LIVE_RELATION"), os.Getenv("LIVE_REFERENCE"))
+		state.Label = fmt.Sprintf("sync-%s-%s-%s-%s-%s", os.Getenv("GITHUB_RUN_ID"), os.Getenv("GITHUB_RUN_ATTEMPT"), os.Getenv("LIVE_RELATION"), os.Getenv("LIVE_REFERENCE"), os.Getenv("LIVE_SYNC_MILESTONE"))
 		save()
 		call("POST", "/labels", map[string]interface{}{"name": state.Label, "color": "cccccc"}, nil)
 		state.LabelCreated = true
@@ -143,8 +144,17 @@ func TestLiveIssueSync(t *testing.T) {
 		} else {
 			call("PATCH", issuePath(state.Parent.Number), map[string]interface{}{"body": body + "\n\n- [ ] " + state.Child.URL}, nil)
 		}
-		// Clear GitHub's automatic milestone inheritance to isolate the Action.
-		call("PATCH", issuePath(state.Child.Number), map[string]interface{}{"milestone": nil, "labels": []string{}, "assignees": []string{}}, nil)
+		// Isolate the Action from automatic inheritance. In the disabled case,
+		// use a child-only milestone and verify that it is preserved.
+		var childMilestone interface{}
+		if os.Getenv("LIVE_SYNC_MILESTONE") == "false" {
+			var independent struct{ Number int }
+			call("POST", "/milestones", map[string]interface{}{"title": state.Label + "-child"}, &independent)
+			state.ChildMilestone = independent.Number
+			save()
+			childMilestone = independent.Number
+		}
+		call("PATCH", issuePath(state.Child.Number), map[string]interface{}{"milestone": childMilestone, "labels": []string{}, "assignees": []string{}}, nil)
 		call("GET", issuePath(state.Parent.Number), nil, &state.Parent)
 		call("GET", issuePath(state.Child.Number), nil, &state.Child)
 		save()
@@ -195,6 +205,9 @@ func TestLiveIssueSync(t *testing.T) {
 		var actual liveIssue
 		call("GET", issuePath(state.Child.Number), nil, &actual)
 		expected, observed := liveFields(state.Parent), liveFields(actual)
+		if os.Getenv("LIVE_SYNC_MILESTONE") == "false" {
+			expected["milestone"] = liveFields(state.Child)["milestone"]
+		}
 		data, err := json.MarshalIndent(map[string]interface{}{"source_commit": os.Getenv("GITHUB_SHA"), "relation": os.Getenv("LIVE_RELATION"), "reference": os.Getenv("LIVE_REFERENCE"), "before": liveFields(state.Child), "expected": expected, "actual": observed, "parent": state.Parent.URL, "child": state.Child.URL}, "", "  ")
 		if err != nil {
 			t.Fatal(err)
@@ -216,9 +229,11 @@ func TestLiveIssueSync(t *testing.T) {
 				failures = append(failures, err.Error())
 			}
 		}
-		if state.Milestone != 0 {
-			if err := liveAPI("DELETE", fmt.Sprintf("%s/milestones/%d", prefix, state.Milestone), nil, nil); err != nil {
-				failures = append(failures, err.Error())
+		for _, milestone := range []int{state.Milestone, state.ChildMilestone} {
+			if milestone != 0 {
+				if err := liveAPI("DELETE", fmt.Sprintf("%s/milestones/%d", prefix, milestone), nil, nil); err != nil {
+					failures = append(failures, err.Error())
+				}
 			}
 		}
 		if state.LabelCreated {

@@ -17,7 +17,8 @@ func TestSyncIssueFieldsUseCase_Execute(t *testing.T) {
 
 	mockClient := mock_github.NewMockGitHubClient(ctrl)
 
-	useCase := NewSyncIssueFieldsUseCase(mockClient)
+	options := github.SyncOptions{Milestone: true, Projects: true}
+	useCase := NewSyncIssueFieldsUseCase(mockClient, options)
 
 	ctx := context.Background()
 	repoOwner := "test_owner"
@@ -43,7 +44,7 @@ func TestSyncIssueFieldsUseCase_Execute(t *testing.T) {
 			MilestoneID: githubv4.ID("milestone1"),
 			ProjectIDs:  []githubv4.ID{"project1"},
 		}
-		mockClient.EXPECT().GetIssueFields(parentID).Return(parentFields, nil)
+		mockClient.EXPECT().GetIssueFields(parentID, options).Return(parentFields, nil)
 
 		updateInput := githubv4.UpdateIssueInput{
 			ID:          targetNodeID,
