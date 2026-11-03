@@ -3,13 +3,13 @@
 [![release-please](https://github.com/kudoas/sync-issue-field/actions/workflows/release.yml/badge.svg)](https://github.com/kudoas/sync-issue-field/actions/workflows/release.yml)
 [![CI](https://github.com/kudoas/sync-issue-field/actions/workflows/ci.yml/badge.svg)](https://github.com/kudoas/sync-issue-field/actions/workflows/ci.yml)
 
-This GitHub Action is used to synchronize specific fields (e.g., Assigned, Labels, Milestone, etc.) from a parent Issue to a child Issue.
+This GitHub Action synchronizes assignees and labels from a parent Issue to a child Issue. Milestone and Project membership synchronization can be enabled independently.
 
 The parent is the issue's explicit GitHub Sub-issue parent. For compatibility, when no explicit parent exists, a single issue tracking the child in a Markdown checklist is also accepted. An explicit parent takes priority over checklist references. Multiple checklist tracking issues without an explicit parent are ambiguous and cause an error rather than selecting one arbitrarily. If neither relation exists, synchronization is skipped.
 
 Assignees and labels on the child are replaced with the parent's complete sets, including clearing them when the parent has none. Child-only assignees and labels are removed. All label pages are fetched before any update; a failed page aborts synchronization without updating the child. Assignees are fetched up to [GitHub's limit of 10 per issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/assigning-issues-and-pull-requests-to-other-github-users#about-issue-and-pull-request-assignees).
 
-The opt-in `Verify parent synchronization` workflow checks both parent relations using isolated test Issues and reads back assignees, labels and milestone. It closes those Issues and deletes its temporary labels/milestones afterward. It requires `issues: write`; normal PR CI remains read-only and skips live tests.
+The opt-in `Verify parent synchronization` workflow checks both parent relations using isolated test Issues and reads back assignees, labels and milestone, including disabled milestone synchronization preserving a child-only value. It closes those Issues and deletes its temporary labels/milestones afterward. It requires `issues: write`; normal PR CI remains read-only and skips live tests.
 
 ## Usage
 
@@ -32,7 +32,6 @@ on:
 
 permissions:
   issues: write
-  # repository-projects: write # Uncomment if syncing classic projects
   # contents: read # Needed to checkout code
 
 jobs:
@@ -63,9 +62,39 @@ The input parameters defined in `action.yml` are as follows:
 |------------|------------------------------------------------------------------------------|-----------------------------|----------|
 | `repository` | Repository name with owner (e.g., `kudoas/sync-issue-field`). Defaults to the current repository. | `${{ github.repository }}`  | `false`  |
 | `issue`      | The number that identifies the child issue to synchronize with the parent issue. Defaults to the current issue. | `${{ github.event.issue.number }}` | `false`  |
-| `token`      | GitHub Token.                                                               |                             | `true`   |
+| `token`      | GitHub token with Issues read/write access. Projects synchronization also requires Projects access (see below). | | `true` |
+| `sync-milestone` | Copy the parent's milestone; clear the child's milestone if the parent has none. | `false` | `false` |
+| `sync-projects` | Add the child to the first Project returned for its parent. | `false` | `false` |
 
-The `token` is required for the action to interact with the GitHub API.
+The `token` is required for the action to interact with the GitHub API. The two synchronization options accept only the literal strings `true` and `false`; omitted or empty options default to `false`.
+
+### Optional milestone and Project synchronization
+
+By default, milestones and Projects are neither queried nor updated, so child-specific values are preserved. For assignees, labels and optional milestone synchronization, a repository `GITHUB_TOKEN` with `issues: write` is sufficient for issues in that repository.
+
+With `sync-milestone: 'true'`, the parent's current milestone replaces the child's value, including clearing it when the parent has none. With `sync-projects: 'true'`, the child is added to the first Project returned for the parent (the query reads at most five). Existing child Projects are retained. This does not synchronize every Project membership or custom field values.
+
+Projects synchronization requires a GitHub App token or PAT with access to the target Projects and Issues read/write access to the repository. Organization Projects need organization Projects read/write permission; repository Projects permission is insufficient. `GITHUB_TOKEN` cannot access Projects. Follow [GitHub's authentication instructions](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/automating-projects-using-actions).
+
+To enable both optional fields, configure a step with your Projects-capable token:
+
+```yaml
+- uses: kudoas/sync-issue-field@<tag_or_commit_hash>
+  with:
+    token: ${{ secrets.PROJECT_SYNC_TOKEN }}
+    sync-milestone: 'true'
+    sync-projects: 'true'
+```
+
+Use a published version containing these inputs. A failed field read aborts before the child is updated. Project addition happens after the Issue update, so an addition failure returns an error stating that Issue fields were already updated; the two operations are not atomic.
+
+The Action copies values when invoked for a child. Changes to a parent do not automatically trigger updates to all its children. Standard GitHub Sub-issue inheritance and explicit Action runs are separate behaviors.
+
+### Migration from v0.2.x
+
+This change is intended for the next minor release. Unlike v0.2.x, milestones and Projects are disabled by default. To retain both optional behaviors, set both inputs to `true` and supply a Projects-capable token. For milestone-only use, enable only `sync-milestone`; a Projects token is unnecessary. Existing published tags and binaries keep their original behavior.
+
+The [scope decision](docs/synchronization-scope.md) records the rationale and remaining live verification.
 
 ## Developer Information
 

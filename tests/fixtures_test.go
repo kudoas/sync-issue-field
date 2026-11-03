@@ -314,6 +314,8 @@ set -eu
 test "$GITHUB_REPOSITORY" = example/consumer || { echo 'repository input mismatch' >&2; exit 1; }
 test "$GITHUB_ISSUE" = 133 || { echo 'issue input mismatch' >&2; exit 1; }
 test "$GITHUB_TOKEN" = fixture-token || { echo 'token input mismatch' >&2; exit 1; }
+test "$SYNC_MILESTONE" = true || { echo 'milestone input mismatch' >&2; exit 1; }
+test "$SYNC_PROJECTS" = false || { echo 'projects input mismatch' >&2; exit 1; }
 echo executed > "$FIXTURE_RESULT"
 `
 		if err := os.WriteFile(filepath.Join(f.assets, "sync-issue-field_linux_"+arch), []byte(body), 0600); err != nil {

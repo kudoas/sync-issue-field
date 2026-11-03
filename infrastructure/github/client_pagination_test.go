@@ -136,8 +136,6 @@ func TestCompleteIssueFieldsBeforeMutation(t *testing.T) {
 							users = append(users, map[string]string{"id": id})
 						}
 						node["assignees"] = map[string]interface{}{"nodes": users}
-						node["milestone"] = nil
-						node["projectItems"] = map[string]interface{}{"nodes": []interface{}{}}
 					}
 					body, err := json.Marshal(map[string]interface{}{"data": map[string]interface{}{"node": node}})
 					if err != nil {
@@ -152,7 +150,7 @@ func TestCompleteIssueFieldsBeforeMutation(t *testing.T) {
 				}
 			})}
 			ctx := context.WithValue(context.Background(), oauth2.HTTPClient, client)
-			uc := usecase.NewSyncIssueFieldsUseCase(github.NewGithubClient(ctx, "fixture-token"))
+			uc := usecase.NewSyncIssueFieldsUseCase(github.NewGithubClient(ctx, "fixture-token"), github.SyncOptions{})
 			err := uc.Execute(ctx, "example", "repo", 42)
 			if tc.failure != "" {
 				if err == nil {

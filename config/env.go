@@ -8,10 +8,12 @@ import (
 )
 
 type Env struct {
-	token       string
-	repoOwner   string
-	repoName    string
-	issueNumber int
+	token         string
+	repoOwner     string
+	repoName      string
+	issueNumber   int
+	syncMilestone bool
+	syncProjects  bool
 }
 
 func ProvideEnv() (*Env, error) {
@@ -43,11 +45,22 @@ func ProvideEnv() (*Env, error) {
 		return nil, &EnvInvalidError{"Issue number is not set"}
 	}
 
+	syncMilestone, err := optionalBool("SYNC_MILESTONE")
+	if err != nil {
+		return nil, err
+	}
+	syncProjects, err := optionalBool("SYNC_PROJECTS")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Env{
-		token:       token,
-		repoOwner:   repoOwner,
-		repoName:    repoName,
-		issueNumber: issue,
+		token:         token,
+		repoOwner:     repoOwner,
+		repoName:      repoName,
+		issueNumber:   issue,
+		syncMilestone: syncMilestone,
+		syncProjects:  syncProjects,
 	}, nil
 }
 
@@ -78,3 +91,16 @@ func (e *EnvInvalidError) Error() string {
 func (e *EnvInvalidError) Unwrap() error {
 	return e
 }
+
+func optionalBool(name string) (bool, error) {
+	switch os.Getenv(name) {
+	case "", "false":
+		return false, nil
+	case "true":
+		return true, nil
+	default:
+		return false, &EnvInvalidError{name + " must be true or false"}
+	}
+}
+func (e *Env) SyncMilestone() bool { return e.syncMilestone }
+func (e *Env) SyncProjects() bool  { return e.syncProjects }

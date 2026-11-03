@@ -20,6 +20,27 @@ func TestVersionTagExecutesWithoutBuildAndPreservesInputs(t *testing.T) {
 	}
 }
 
+func TestLauncherPreservesOptionalFlags(t *testing.T) {
+	for _, tc := range []struct{ milestone, projects, want string }{
+		{"", "", "false:false"}, {"true", "false", "true:false"}, {"false", "true", "false:true"}, {"true", "true", "true:true"},
+	} {
+		t.Run(tc.want, func(t *testing.T) {
+			f := newFixture(t)
+			for _, arch := range []string{"amd64", "arm64"} {
+				write(t, filepath.Join(f.assets, "sync-issue-field_linux_"+arch), "#!/bin/sh\nprintf '%s:%s\\n' \"$SYNC_MILESTONE\" \"$SYNC_PROJECTS\"\n")
+			}
+			if err := f.checksums(); err != nil {
+				t.Fatal(err)
+			}
+			r := f.launch(t, map[string]string{"INPUT_SYNC_MILESTONE": tc.milestone, "INPUT_SYNC_PROJECTS": tc.projects})
+			requireCode(t, r, 0)
+			if !strings.HasSuffix(r.stdout, tc.want+"\n") {
+				t.Fatalf("options not passed: %s", r.stdout)
+			}
+		})
+	}
+}
+
 func TestCommitPinResolvesAnnotatedReleaseTag(t *testing.T) {
 	refs := strings.Repeat("b", 40) + "\trefs/tags/" + fixtureTag + "\n" + fixtureSHA + "\trefs/tags/" + fixtureTag + "^{}"
 	r := newFixture(t).launch(t, map[string]string{"ACTION_REF": fixtureSHA, "FIXTURE_REFS": refs})
@@ -196,6 +217,16 @@ func TestPackagedBinaries(t *testing.T) {
 		requireCode(t, r, 1)
 		if !strings.Contains(r.stderr, "Issue number can't parse to int") {
 			t.Fatalf("expected input validation before API access: %s", r.stderr)
+		}
+		for input, name := range map[string]string{"INPUT_SYNC_MILESTONE": "SYNC_MILESTONE", "INPUT_SYNC_PROJECTS": "SYNC_PROJECTS"} {
+			r := f.launch(t, map[string]string{
+				"ACTION_REF": commit, "FIXTURE_REFS": commit + "\trefs/tags/" + fixtureTag,
+				"RUNNER_ARCH": arch, "INPUT_ISSUE": "42", input: "invalid",
+			})
+			requireCode(t, r, 1)
+			if !strings.Contains(r.stderr, name+" must be true or false") {
+				t.Fatalf("binary did not validate option: %s", r.stderr)
+			}
 		}
 	}
 }

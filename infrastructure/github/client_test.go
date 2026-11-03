@@ -113,13 +113,13 @@ func TestParentSelectionOverHTTP(t *testing.T) {
 }
 
 func TestIssueFieldsOverHTTP(t *testing.T) {
-	response := `{"data":{"node":{"assignees":{"nodes":[{"id":"user"}]},"labels":{"nodes":[{"id":"label"}]},"milestone":{"id":"milestone"},"projectItems":{"nodes":[{"project":{"id":"project"},"fieldValues":{"nodes":[]}}]}}}}`
+	response := `{"data":{"node":{"assignees":{"nodes":[{"id":"user"}]},"labels":{"nodes":[{"id":"label"}]}}}}`
 	client := fixtureClient(t, "node(id: $nodeID)", response, func(request graphQLRequest) {
 		if string(request.Variables["nodeID"]) != `"parent"` {
 			t.Errorf("nodeID = %s", request.Variables["nodeID"])
 		}
 	})
-	fields, err := client.GetIssueFields(githubv4.ID("parent"))
+	fields, err := client.GetIssueFields(githubv4.ID("parent"), SyncOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +131,6 @@ func TestIssueFieldsOverHTTP(t *testing.T) {
 	}
 	want, err := json.Marshal(&IssueFields{
 		AssigneeIDs: []githubv4.ID{"user"}, LabelIDs: []githubv4.ID{"label"},
-		MilestoneID: githubv4.ID("milestone"), ProjectIDs: []githubv4.ID{"project"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -190,7 +189,7 @@ func TestAPIErrorsAreReturned(t *testing.T) {
 	calls := map[string]func(GitHubClient) error{
 		"issue ID":     func(client GitHubClient) error { _, err := client.GetIssueNodeID(&QueryRequest{}); return err },
 		"parent ID":    func(client GitHubClient) error { _, err := client.GetParentIssueNodeID(&QueryRequest{}); return err },
-		"fields":       func(client GitHubClient) error { _, err := client.GetIssueFields("parent"); return err },
+		"fields":       func(client GitHubClient) error { _, err := client.GetIssueFields("parent", SyncOptions{}); return err },
 		"update issue": func(client GitHubClient) error { return client.MutateIssue(githubv4.UpdateIssueInput{ID: "child"}) },
 		"add project": func(client GitHubClient) error {
 			return client.MutateProject(githubv4.AddProjectV2ItemByIdInput{ProjectID: "project", ContentID: "child"})

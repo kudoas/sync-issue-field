@@ -16,8 +16,11 @@ jobs:
       fail-fast: false
       matrix:
         relation: [sub-issue, checklist]
+        milestone: ['true', 'false']
     env:
       LIVE_RELEASE_TEST: '1'
+      SYNC_MILESTONE: ${{ matrix.milestone }}
+      LIVE_SYNC_MILESTONE: ${{ matrix.milestone }}
       LIVE_RELATION: ${{ matrix.relation }}
       LIVE_REFERENCE: candidate
       GITHUB_TOKEN: ${{ github.token }}
@@ -56,6 +59,6 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: parent-${{ matrix.relation }}
+          name: parent-${{ matrix.relation }}-milestone-${{ matrix.milestone }}
           path: ${{ runner.temp }}/live-*.json
           if-no-files-found: ignore
