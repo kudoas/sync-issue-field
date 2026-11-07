@@ -1,6 +1,12 @@
 name: CI
 on: [pull_request, workflow_dispatch]
 
+permissions:
+  contents: read
+
+env:
+  LIVE_RELEASE_TEST: '0'
+
 jobs:
   release-please-runtime:
     runs-on: ubuntu-latest
@@ -64,6 +70,11 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Explain why live API verification is skipped
+        run: |
+          message='Live API verification is disabled in normal CI, including fork PRs. No PAT is required. Maintainers can run verify-parent.yml manually against main.'
+          echo "$message"
+          echo "$message" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -73,6 +84,6 @@ jobs:
           cache-dependency-path: go.sum
       - run: CGO_ENABLED=0 go build -ldflags="-w -s" -v -o app ./cmd/run
       - name: Go tests (including HTTP integration fixtures)
-        run: go test ./... -count=1
+        run: go test ./... -count=1 -v
       - name: Go vet
         run: go vet ./...
