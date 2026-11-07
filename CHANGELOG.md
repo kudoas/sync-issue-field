@@ -17,6 +17,25 @@ The changes below were previously recorded as 0.2.0, but no 0.2.0 tag or GitHub 
 * update release workflow to build and commit binary after release-please step ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
 * update release workflow to build and commit binary after release… ([#72](https://github.com/kudoas/sync-issue-field/issues/72)) ([09bf0a9](https://github.com/kudoas/sync-issue-field/commit/09bf0a922709806bd4ce49ea634aee35c2100c7d))
 
+## [0.3.0](https://github.com/kudoas/sync-issue-field/compare/v0.2.0...v0.3.0) (2026-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* make Project and Milestone synchronization opt-in
+* milestones and Projects now default to disabled. Set sync-milestone and sync-projects to true with a Projects-capable token to retain both optional behaviors.
+
+### Features
+
+* make Project and Milestone synchronization opt-in ([92cce4e](https://github.com/kudoas/sync-issue-field/commit/92cce4ea800aa600a22864ce26f8a02c87701bad))
+* Project・Milestone 同期を任意化する ([#169](https://github.com/kudoas/sync-issue-field/issues/169)) ([92cce4e](https://github.com/kudoas/sync-issue-field/commit/92cce4ea800aa600a22864ce26f8a02c87701bad))
+
+
+### Bug Fixes
+
+* synchronize complete assignee and label sets ([7a78c1b](https://github.com/kudoas/sync-issue-field/commit/7a78c1bcade715a2e32644d6000ce9acda0eb377))
+* 親の担当者・ラベルを全件同期する ([#166](https://github.com/kudoas/sync-issue-field/issues/166)) ([7a78c1b](https://github.com/kudoas/sync-issue-field/commit/7a78c1bcade715a2e32644d6000ce9acda0eb377))
+
 ## [0.2.0](https://github.com/kudoas/sync-issue-field/compare/v0.2.0-rc.1...v0.2.0) (2026-11-02)
 
 
